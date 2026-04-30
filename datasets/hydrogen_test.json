@@ -1,0 +1,34 @@
+{
+  "id": "hydrogen-test-chem-001",
+  "title": "Test for Hydrogen Gas",
+  "subject": "Chemistry",
+  "class": "10",
+  "apparatus": ["Test tube", "Zinc granules", "Dilute HCl", "Delivery tube", "Matchstick", "Stopper"],
+  "steps": [
+    "Place zinc granules in the test tube.",
+    "Pour dilute hydrochloric acid over zinc.",
+    "Quickly fit the stopper with delivery tube.",
+    "Collect the gas evolved.",
+    "Bring burning match near the mouth of the tube to test the gas."
+  ],
+  "correct_outcome": "Pop sound confirms the presence of hydrogen gas (H2).",
+  "common_mistakes": [
+    {
+      "error": "Adding too much acid",
+      "explanation": "Excess acid leads to vigorous reaction and possible splashing. Always add acid slowly."
+    },
+    {
+      "error": "Lighting before collecting gas",
+      "explanation": "Attempting the test before enough gas is collected can produce a small explosion and cause splattering."
+    }
+  ],
+  "safety_notes": [
+    "Do not inhale hydrogen.",
+    "Never face the mouth of the test tube towards yourself or anyone.",
+    "Avoid fire near open acids."
+  ],
+  "ai_explanations": {
+    "pop_sound": "Hydrogen burns in air with a pop sound. This confirms its presence after the reaction.",
+    "vigorous_reaction": "Excess acid or poor handling can lead to accidents. Always handle acids and gases with care."
+  }
+}

@@ -1,0 +1,307 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  student
+  teacher
+  school_admin
+  admin
+}
+
+enum RunStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+enum AssignmentType {
+  experiment
+  quiz
+  questions
+}
+
+enum TeacherSubject {
+  Physics
+  Chemistry
+}
+
+enum NotificationType {
+  assignment_created
+  assignment_graded
+  notice_created
+  resource_created
+  submission_graded
+}
+
+model Class {
+  id         String  @id @default(uuid())
+  school     String
+  classLevel String
+  section    String
+  teacherId  String
+  teacher    User    @relation("TeacherClasses", fields: [teacherId], references: [id])
+  students   User[]  @relation("StudentClass")
+  assignments Assignment[]
+  notices    Notice[]
+  resources  Resource[]
+  createdAt  DateTime @default(now())
+
+  @@unique([school, classLevel, section])
+  @@index([teacherId])
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  teacherSubject TeacherSubject?
+  assignments  Assignment[] @relation("StudentAssignments")
+  createdAssignments Assignment[] @relation("TeacherCreatedAssignments")
+  createdNotices Notice[] @relation("UserCreatedNotices")
+  createdResources Resource[] @relation("UserCreatedResources")
+  submissions  AssignmentSubmission[] @relation("StudentSubmissions")
+  gradedSubmissions AssignmentSubmission[] @relation("GradedSubmissions")
+  notifications Notification[]
+  labExperiments LabExperiment[] @relation("UserLabExperiments")
+  histories    StudentHistory[]
+  school       String?
+  classLevel   String?
+  classId      String?
+  class        Class?   @relation("StudentClass", fields: [classId], references: [id])
+  teachingClasses Class[] @relation("TeacherClasses")
+  experimentRuns ExperimentRun[]
+  tutorMessages  TutorMessage[]
+  experimentFeedback ExperimentFeedback[]
+  createdAt    DateTime @default(now())
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  type        AssignmentType @default(experiment)
+  dueDate     DateTime
+  extendedDueDate DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+  createdById String
+  createdBy   User     @relation("TeacherCreatedAssignments", fields: [createdById], references: [id])
+  studentId   String?
+  student     User?    @relation("StudentAssignments", fields: [studentId], references: [id])
+  practicalId  String?
+  quizSpec    Json?
+  questionsSpec Json?
+  submissions AssignmentSubmission[]
+  subject     TeacherSubject?
+
+  @@index([classId, dueDate])
+  @@index([createdById, dueDate])
+}
+
+model AssignmentSubmission {
+  id           String   @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User     @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+  status       String   @default("submitted")
+  submittedAt  DateTime @default(now())
+  answers      Json?
+  runId        String?
+  score        Float?
+  feedback     String?
+  gradedAt     DateTime?
+  gradedById   String?
+  gradedBy     User?    @relation("GradedSubmissions", fields: [gradedById], references: [id], onDelete: SetNull)
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId, submittedAt])
+}
+
+model Notice {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  classId   String?
+  class     Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  createdById String?
+  createdBy  User?   @relation("UserCreatedNotices", fields: [createdById], references: [id], onDelete: SetNull)
+  subject   TeacherSubject?
+
+  @@index([classId, createdAt])
+}
+
+model Resource {
+  id        String   @id @default(uuid())
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+  classId   String?
+  class     Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  createdById String?
+  createdBy  User?   @relation("UserCreatedResources", fields: [createdById], references: [id], onDelete: SetNull)
+  subject   TeacherSubject?
+
+  @@index([classId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  meta      Json?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model LabExperiment {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assignedTo  String?
+  student     User?    @relation("UserLabExperiments", fields: [assignedTo], references: [id])
+}
+
+model StudentHistory {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  action    String
+  createdAt DateTime @default(now())
+}
+
+model ExperimentRun {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  practicalId    String
+  practicalTitle String
+  simType        String
+  status         RunStatus @default(in_progress)
+  startedAt      DateTime @default(now())
+  endedAt        DateTime?
+  durationSec    Int?
+  score          Float?
+  metadata       Json?
+  steps          RunStep[]
+  hazards        HazardEvent[]
+  measurements   MeasurementPoint[]
+  gradeReport    GradeReport?
+  tutorMessages  TutorMessage[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, startedAt])
+  @@index([practicalId])
+}
+
+model RunStep {
+  id          String   @id @default(uuid())
+  runId       String
+  run         ExperimentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  stepNo      Int
+  title       String
+  status      String
+  note        String?
+  payload     Json?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([runId, stepNo])
+}
+
+model HazardEvent {
+  id         String   @id @default(uuid())
+  runId      String
+  run        ExperimentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  severity   String
+  code       String
+  message    String
+  context    Json?
+  occurredAt DateTime @default(now())
+
+  @@index([runId, occurredAt])
+}
+
+model TutorMessage {
+  id         String   @id @default(uuid())
+  runId      String?
+  run        ExperimentRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  role       String
+  content    String
+  model      String?
+  tokensIn   Int?
+  tokensOut  Int?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([runId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model MeasurementPoint {
+  id        String   @id @default(uuid())
+  runId     String
+  run       ExperimentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  series    String
+  x         Float
+  y         Float
+  unitX     String?
+  unitY     String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([runId, series, createdAt])
+}
+
+model GradeReport {
+  id              String   @id @default(uuid())
+  runId           String   @unique
+  run             ExperimentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  accuracyScore   Float?
+  safetyScore     Float?
+  procedureScore  Float?
+  finalScore      Float?
+  strengths       String?
+  improvements    String?
+  generatedAt     DateTime @default(now())
+}
+
+model ExperimentFeedback {
+  id             String   @id @default(uuid())
+  authorId       String
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  practicalId    String
+  practicalTitle String?
+  rating         Int
+  comment        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([authorId, practicalId])
+  @@index([practicalId, updatedAt])
+  @@index([userId, updatedAt])
+}

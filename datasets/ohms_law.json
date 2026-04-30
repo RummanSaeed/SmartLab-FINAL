@@ -1,0 +1,34 @@
+{
+  "id": "ohms-law-phys-001",
+  "title": "Verify Ohm's Law",
+  "subject": "Physics",
+  "class": "10",
+  "apparatus": ["Battery", "Ammeter", "Voltmeter", "Resistor", "Wires", "Switch", "Breadboard"],
+  "steps": [
+    "Assemble circuit: Battery → Ammeter → Resistor. Voltmeter in parallel to resistor.",
+    "Ensure connections are tight and correct. Switch is open.",
+    "Close the switch, record voltmeter & ammeter readings.",
+    "Change resistance (if possible) and repeat readings.",
+    "Plot V vs I graph, calculate slope (resistance)."
+  ],
+  "correct_outcome": "Linear V-I relation. Ratio V/I remains constant for Ohmic materials.",
+  "common_mistakes": [
+    {
+      "error": "Short circuit",
+      "explanation": "Connecting battery directly with no resistance. High current will flow, causing sparks/heat."
+    },
+    {
+      "error": "Wrong meter arrangement",
+      "explanation": "Voltmeter not parallel, ammeter not in series. No or wrong readings."
+    }
+  ],
+  "safety_notes": [
+    "Never short battery terminals.",
+    "Use low voltage to avoid heating.",
+    "Power off before changing circuit."
+  ],
+  "ai_explanations": {
+    "short_circuit": "High current due to missing resistance can cause wires to heat up and might result in sparks. Always place a resistor in the circuit.",
+    "no_reading": "Check the arrangement: Ammeter in series, Voltmeter in parallel with the resistor."
+  }
+}
