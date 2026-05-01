@@ -127,6 +127,20 @@ import { ProteinDenaturationSim } from "@/components/lab/sims/protein-denaturati
 import { StarchDigestionSim } from "@/components/lab/sims/starch-digestion-sim"
 import { IodineNumberSim } from "@/components/lab/sims/iodine-number-sim"
 
+// Class 10 Chemistry Simulations (SSC)
+import { NaOHStandardizationSim } from "@/components/lab/sims/naoh-standardization-sim"
+import { HClStandardizationSim } from "@/components/lab/sims/hcl-standardization-sim"
+import { Na2CO3MolaritySim } from "@/components/lab/sims/na2co3-molarity-sim"
+import { OxalicMolaritySim } from "@/components/lab/sims/oxalic-molarity-sim"
+import { WeakAcidsSim } from "@/components/lab/sims/weak-acids-sim"
+import { ClassifySubstancesSim } from "@/components/lab/sims/classify-substances-sim"
+import { AldehydeIdentificationSim } from "@/components/lab/sims/aldehyde-identification-sim"
+import { KetoneIdentificationSim } from "@/components/lab/sims/ketone-identification-sim"
+import { CarboxylicAcidIdentificationSim } from "@/components/lab/sims/carboxylic-acid-identification-sim"
+import { PhenolIdentificationSim } from "@/components/lab/sims/phenol-identification-sim"
+import { KMnO4UnsaturationSim } from "@/components/lab/sims/kmno4-unsaturation-sim"
+import { SugarDecompositionSim } from "@/components/lab/sims/sugar-decomposition-sim"
+
 import { practicals } from "@/data/practicals"
 
 export default function LabWorkspace({
@@ -3277,6 +3291,67 @@ export default function LabWorkspace({
                 practicalId={practical?.id}
                 practicalTitle={practical?.title}
               />
+            )}
+            {/* Class 10 Chemistry (SSC) Dedicated Simulations */}
+            {practical?.simType === "naoh-standardization" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <NaOHStandardizationSim />
+              </div>
+            )}
+            {practical?.simType === "hcl-standardization" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <HClStandardizationSim />
+              </div>
+            )}
+            {practical?.simType === "na2co3-molarity" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <Na2CO3MolaritySim />
+              </div>
+            )}
+            {practical?.simType === "oxalic-molarity" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <OxalicMolaritySim />
+              </div>
+            )}
+            {practical?.simType === "weak-acids" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <WeakAcidsSim />
+              </div>
+            )}
+            {practical?.simType === "classify-substances" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <ClassifySubstancesSim />
+              </div>
+            )}
+            {practical?.simType === "aldehyde-identification" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <AldehydeIdentificationSim />
+              </div>
+            )}
+            {practical?.simType === "ketone-identification" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <KetoneIdentificationSim />
+              </div>
+            )}
+            {practical?.simType === "carboxylic-acid-identification" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <CarboxylicAcidIdentificationSim />
+              </div>
+            )}
+            {practical?.simType === "phenol-identification" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <PhenolIdentificationSim />
+              </div>
+            )}
+            {practical?.simType === "kmno4-unsaturation" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <KMnO4UnsaturationSim />
+              </div>
+            )}
+            {practical?.simType === "sugar-decomposition" && (
+              <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-2">
+                <SugarDecompositionSim />
+              </div>
             )}
             {practical?.simType === "friction-block" && (
               <div className="space-y-4">
