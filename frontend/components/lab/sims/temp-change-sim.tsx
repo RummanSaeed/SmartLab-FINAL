@@ -27,12 +27,12 @@ function mixColor(progress: number, exothermic: boolean) {
 // Animated water droplets from dropper
 function WaterDroplets({ active }: { active: boolean }) {
   const dropletsRef = useRef<THREE.Group>(null)
-  const dropletData = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => ({
+  const [dropletData] = useState(() =>
+    Array.from({ length: 5 }, (_, i) => ({
       phase: i * 0.4,
       speed: 1.5 + Math.random() * 0.5,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!dropletsRef.current || !active) return

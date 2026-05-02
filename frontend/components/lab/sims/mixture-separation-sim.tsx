@@ -42,13 +42,13 @@ function WorkTray() {
 
 // Sand particles (golden spheres)
 function SandParticles({ count, spread }: { count: number; spread: number }) {
-  const particles = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => ({
+  const [particles] = useState(() =>
+    Array.from({ length: count }, (_, i) => ({
       x: (Math.random() - 0.5) * spread,
       z: (Math.random() - 0.5) * spread,
       scale: 0.8 + Math.random() * 0.4,
     }))
-  }, [count, spread])
+  )
 
   return (
     <>
