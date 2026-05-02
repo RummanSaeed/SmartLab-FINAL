@@ -109,14 +109,14 @@ function BunsenFlame({ active }: { active: boolean }) {
 // Gas bubbles rising from heated solid
 function GasBubbles({ active, progress, gasType }: { active: boolean; progress: number; gasType: string }) {
   const bubblesRef = useRef<THREE.Group>(null)
-  const bubbleData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  const [bubbleData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       x: (Math.random() - 0.5) * 0.1,
       phase: Math.random() * Math.PI * 2,
       speed: 0.8 + Math.random() * 0.5,
       size: 0.006 + Math.random() * 0.004,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!bubblesRef.current || !active || progress < 0.3) return

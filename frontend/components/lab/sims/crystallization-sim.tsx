@@ -92,15 +92,15 @@ function HeatShimmer({ intensity }: { intensity: number }) {
 // Enhanced vapor particles
 function Vapor({ amount }: { amount: number }) {
   const vaporRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => ({
+  const [bubbleData] = useState(() =>
+    Array.from({ length: 15 }, (_, i) => ({
       x: -0.55 + (Math.random() - 0.5) * 0.3,
       z: -0.3 + (Math.random() - 0.5) * 0.15,
       phase: Math.random() * Math.PI * 2,
       speed: 0.4 + Math.random() * 0.4,
       size: 0.012 + Math.random() * 0.008,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!vaporRef.current || amount <= 0) return

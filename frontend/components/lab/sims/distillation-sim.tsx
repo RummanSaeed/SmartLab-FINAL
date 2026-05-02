@@ -133,14 +133,15 @@ function VaporParticles({ active, temp }: { active: boolean; temp: number }) {
 // Condensation droplets on condenser surface
 function CondensationDroplets({ active, temp }: { active: boolean; temp: number }) {
   const dropletsRef = useRef<THREE.Group>(null)
-  const dropletData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  // Use lazy state initialization to avoid impure function during render
+  const [dropletData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       u: Math.random(), // Position along condenser length
       angle: Math.random() * Math.PI * 2,
       phase: Math.random() * Math.PI * 2,
       size: 0.008 + Math.random() * 0.006,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!dropletsRef.current || !active || temp < 75) return

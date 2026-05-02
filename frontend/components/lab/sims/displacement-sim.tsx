@@ -68,15 +68,15 @@ function CopperDeposit({ progress }: { progress: number }) {
 // Ion exchange particles animation
 function IonExchangeParticles({ active, progress }: { active: boolean; progress: number }) {
   const particlesRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
       x: (Math.random() - 0.5) * 0.3,
       y: 0.4 + Math.random() * 0.3,
       z: -0.3 + (Math.random() - 0.5) * 0.2,
       speed: 0.3 + Math.random() * 0.4,
       phase: Math.random() * Math.PI * 2,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!particlesRef.current || !active || progress <= 0) return

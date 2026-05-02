@@ -133,15 +133,15 @@ function CuSO4Crystals({ visible, reaction }: { visible: boolean; reaction: numb
 // Steam/vapor from exothermic reaction
 function SteamVapor({ active, temp, isExothermic }: { active: boolean; temp: number; isExothermic: boolean }) {
   const vaporRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       x: (Math.random() - 0.5) * 0.15,
       z: -0.3 + (Math.random() - 0.5) * 0.1,
       phase: Math.random() * Math.PI * 2,
       speed: 0.7 + Math.random() * 0.4,
       size: 0.012 + Math.random() * 0.008,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!vaporRef.current || !active || temp < 30) return

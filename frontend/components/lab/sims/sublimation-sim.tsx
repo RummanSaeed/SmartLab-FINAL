@@ -79,15 +79,15 @@ function BunsenFlame({ active, intensity }: { active: boolean; intensity: number
 // Realistic vapor/fume trails rising from dish
 function VaporTrails({ active, progress }: { active: boolean; progress: number }) {
   const trailsRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
       x: (Math.random() - 0.5) * 0.5,
       z: -0.35 + (Math.random() - 0.5) * 0.4,
       phase: Math.random() * Math.PI * 2,
       speed: 0.8 + Math.random() * 0.6,
       size: 0.015 + Math.random() * 0.01,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!trailsRef.current || !active || progress < 0.15) return

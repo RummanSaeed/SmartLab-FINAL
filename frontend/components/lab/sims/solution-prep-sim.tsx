@@ -119,15 +119,15 @@ function PouringStream({ active }: { active: boolean }) {
 // Vapor/fume particles for NaOH and HCl
 function VaporParticles({ amount, solute }: { amount: number; solute: string }) {
   const vaporRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       x: -0.25 + (Math.random() - 0.5) * 0.25,
       z: -0.3 + (Math.random() - 0.5) * 0.15,
       phase: Math.random() * Math.PI * 2,
       speed: 0.5 + Math.random() * 0.5,
       size: 0.015 + Math.random() * 0.01,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!vaporRef.current || amount <= 0) return

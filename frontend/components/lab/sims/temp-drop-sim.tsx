@@ -33,14 +33,14 @@ type TempDropSetup = {
 function ColdVapor({ active, intensity }: { active: boolean; intensity: number }) {
   const vaporRef = useRef<THREE.Group>(null)
 
-  const particleData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       x: (Math.random() - 0.5) * 0.4,
       z: -0.3 + (Math.random() - 0.5) * 0.2,
       phase: Math.random() * Math.PI * 2,
       speed: 0.3 + Math.random() * 0.3,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!vaporRef.current || !active || intensity <= 0) return
