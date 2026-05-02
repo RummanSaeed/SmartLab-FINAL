@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useRef, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Html } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
@@ -282,6 +282,23 @@ export function FlywheelSim({
   
   // Theoretical moment of inertia for solid disk: I = 0.5 * M * R²
   const theoreticalInertia = 0.5 * flywheelMass * Math.pow(flywheelRadius, 2)
+
+  // Record trial data - defined as ref to avoid hoisting issues
+  const recordTrialRef = useRef((rotations: number, time: number) => {
+    // Calculate experimental inertia from data
+    // Using energy conservation: mgh = 0.5Iω² + 0.5mv²
+    const g = 9.8
+    const v = dropHeight / time // Average velocity
+    const omega = (2 * rotations * Math.PI) / time
+    const experimentalI = (hangingMass * g * dropHeight - 0.5 * hangingMass * v * v) / (0.5 * omega * omega)
+    
+    setTrials(prev => [...prev, {
+      dropHeight,
+      rotations: Number(rotations.toFixed(1)),
+      time: Number(time.toFixed(2)),
+      inertia: Number(experimentalI.toFixed(4))
+    }].slice(-5))
+  })
   
   // Calculate angular acceleration and simulate
   useEffect(() => {
@@ -308,29 +325,13 @@ export function FlywheelSim({
         const unwrappedLength = rotation * flywheelR
         if (unwrappedLength >= dropHeight) {
           setIsRunning(false)
-          recordTrial(totalRotations, currentTime)
+          recordTrialRef.current(totalRotations, currentTime)
         }
       }, 16)
       
       return () => clearInterval(interval)
     }
   }, [isRunning, rotation, hangingMass, theoreticalInertia, dropHeight])
-  
-  const recordTrial = (rotations: number, time: number) => {
-    // Calculate experimental inertia from data
-    // Using energy conservation: mgh = 0.5Iω² + 0.5mv²
-    const g = 9.8
-    const v = dropHeight / time // Average velocity
-    const omega = (2 * rotations * Math.PI) / time
-    const experimentalI = (hangingMass * g * dropHeight - 0.5 * hangingMass * v * v) / (0.5 * omega * omega)
-    
-    setTrials(prev => [...prev, {
-      dropHeight,
-      rotations: Number(rotations.toFixed(1)),
-      time: Number(time.toFixed(2)),
-      inertia: Number(experimentalI.toFixed(4))
-    }].slice(-5))
-  }
   
   const reset = () => {
     setIsRunning(false)

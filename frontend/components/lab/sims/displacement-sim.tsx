@@ -69,8 +69,8 @@ function CopperDeposit({ progress }: { progress: number }) {
 function IonExchangeParticles({ active, progress }: { active: boolean; progress: number }) {
   const particlesRef = useRef<THREE.Group>(null)
   const [particleData] = useState(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      x: (Math.random() - 0.5) * 0.3,
+    Array.from({ length: 10 }, (_, i) => ({
+      x: -0.6 + (Math.random() - 0.5) * 0.3,
       y: 0.4 + Math.random() * 0.3,
       z: -0.3 + (Math.random() - 0.5) * 0.2,
       speed: 0.3 + Math.random() * 0.4,

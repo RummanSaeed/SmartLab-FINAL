@@ -118,15 +118,15 @@ function BunsenFlame({ active, intensity }: { active: boolean; intensity: number
 // Particle fusion effect during reaction
 function FusionParticles({ active, progress, startColor, productColor }: { active: boolean; progress: number; startColor: string; productColor: string }) {
   const particlesRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 16 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 16 }, (_, i) => ({
       startX: (Math.random() - 0.5) * 0.3,
       startY: 0.4 + Math.random() * 0.2,
       startZ: -0.3 + (Math.random() - 0.5) * 0.2,
       speed: 0.5 + Math.random() * 0.5,
       phase: Math.random() * Math.PI * 2,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!particlesRef.current || !active || progress <= 0.1) return

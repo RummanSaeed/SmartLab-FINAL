@@ -169,15 +169,15 @@ function LiquidFlow({ active, type }: { active: boolean; type: "stock" | "water"
 // Mixing turbulence particles
 function MixingTurbulence({ active, intensity }: { active: boolean; intensity: number }) {
   const turbulenceRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => ({
       x: 0.55 + ((i % 4) - 1.5) * 0.06,
       y: 0.55 + Math.random() * 0.3,
       z: -0.3 + (Math.random() - 0.5) * 0.1,
       phase: Math.random() * Math.PI * 2,
       speed: 2 + Math.random() * 2,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!turbulenceRef.current || !active || intensity <= 0) return

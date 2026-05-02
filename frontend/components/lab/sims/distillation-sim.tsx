@@ -77,15 +77,15 @@ function BunsenFlame({ active, intensity }: { active: boolean; intensity: number
 // Vapor rising from heated flask
 function VaporParticles({ active, temp }: { active: boolean; temp: number }) {
   const particlesRef = useRef<THREE.Group>(null)
-  const particleData = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => ({
+  const [particleData] = useState(() =>
+    Array.from({ length: 15 }, (_, i) => ({
       x: -1.1 + (Math.random() - 0.5) * 0.3,
       z: -0.35 + (Math.random() - 0.5) * 0.2,
       phase: Math.random() * Math.PI * 2,
       speed: 0.6 + Math.random() * 0.5,
       size: 0.015 + Math.random() * 0.01,
     }))
-  }, [])
+  )
 
   useFrame(({ clock }) => {
     if (!particlesRef.current || !active || temp < 70) return
