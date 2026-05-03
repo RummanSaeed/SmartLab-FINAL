@@ -168,8 +168,8 @@ function DeliveryTube({ startPos, endPos }: { startPos: [number, number, number]
   return (
     <group>
       {/* Horizontal tube */}
-      <mesh position={[(startPos[0] + endPos[0]) / 2, startPos[1], startPos[2]]}>
-        <cylinderGeometry args={[0.02, 0.02, Math.abs(endPos[0] - startPos[0]), 12]} rotation={[0, 0, Math.PI / 2]} />
+      <mesh position={[(startPos[0] + endPos[0]) / 2, startPos[1], startPos[2]]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.02, 0.02, Math.abs(endPos[0] - startPos[0]), 12]} />
         <meshStandardMaterial color="#666" transparent opacity={0.8} />
       </mesh>
       {/* Down tube */}
@@ -185,7 +185,7 @@ function LabTable() {
   return (
     <mesh position={[0, -1.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[10, 6]} />
-      <meshStandardMaterial color="#e2e8f0" roughness={0.8} />
+      <meshStandardMaterial color="#334155" roughness={0.8} />
     </mesh>
   )
 }
@@ -270,7 +270,7 @@ export function CarboxylicAcidIdentificationSim() {
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden h-[400px]">
         <Canvas camera={{ position: [0, 2, 6], fov: 50 }}>
-          <color attach="background" args={["#f8fafc"]} />
+          <color attach="background" args={["#020817"]} />
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 10, 5]} intensity={1.2} />
           <pointLight position={[-5, 5, -5]} intensity={0.5} />

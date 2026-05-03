@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, GraduationCap, BookOpen, UserCog, Clock, CheckCircle2, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Users, GraduationCap, BookOpen, UserCog, Clock, CheckCircle2, AlertCircle, School, TrendingUp } from "lucide-react"
 
 type Stats = {
   totalTeachers: number
   totalStudents: number
   activeClasses: number
   adminStaff: number
+}
+
+type DashboardData = {
+  stats: Stats
+  recentActivities: Activity[]
+  school: string | null
 }
 
 type Activity = {
@@ -29,14 +36,16 @@ const fallbackStats: Stats = {
 export default function SchoolAdminDashboard() {
   const [stats, setStats] = useState<Stats>(fallbackStats)
   const [recentActivities, setRecentActivities] = useState<Activity[]>([])
+  const [schoolName, setSchoolName] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/dashboard/school-admin")
       .then((res) => res.json())
-      .then((data) => {
-        if (!data || data.error) return
+      .then((data: DashboardData) => {
+        if (!data || (data as any).error) return
         if (data.stats) setStats(data.stats)
         if (Array.isArray(data.recentActivities)) setRecentActivities(data.recentActivities)
+        setSchoolName(data.school)
       })
       .catch(() => {
         // keep fallback state
@@ -72,9 +81,23 @@ export default function SchoolAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Live school data for teachers, students, classes, and activity.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            {schoolName && (
+              <Badge variant="outline" className="text-base px-3 py-1">
+                <School className="w-4 h-4 mr-2" />
+                {schoolName}
+              </Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground mt-1">Live school data for teachers, students, classes, and activity.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <TrendingUp className="w-4 h-4" />
+          Real-time updates
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

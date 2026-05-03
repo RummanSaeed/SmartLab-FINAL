@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TeacherSidebar } from "@/components/teacher/sidebar"
 
@@ -38,6 +39,13 @@ type ExperimentOption = {
   category?: string
 }
 
+type QuizQuestionDraft = {
+  id: string
+  prompt: string
+  choices: string[]
+  answerIndex: number
+}
+
 export default function TeacherAssignmentsPage() {
   const [classes, setClasses] = useState<ClassOption[]>([])
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
@@ -63,8 +71,12 @@ export default function TeacherAssignmentsPage() {
     extendedDueDate: "",
     practicalId: "",
     questionsJson: "",
-    quizJson: "",
+    quizDurationMin: "10",
   })
+
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestionDraft[]>([
+    { id: (globalThis.crypto as any)?.randomUUID?.() || "q1", prompt: "", choices: ["", "", "", ""], answerIndex: 0 },
+  ])
 
   useEffect(() => {
     fetch("/api/teacher/classes")
@@ -192,15 +204,46 @@ export default function TeacherAssignmentsPage() {
     }
 
     if (newAssignment.type === "quiz") {
-      if (!newAssignment.quizJson.trim()) {
-        setCreateError("quiz JSON is required")
+      const durationMin = Number(newAssignment.quizDurationMin)
+      if (!Number.isFinite(durationMin) || durationMin <= 0 || durationMin > 180) {
+        setCreateError("Quiz duration must be between 1 and 180 minutes")
         return
       }
-      try {
-        payload.quizSpec = JSON.parse(newAssignment.quizJson)
-      } catch {
-        setCreateError("quiz JSON is invalid")
+
+      const cleaned = quizQuestions
+        .map((q) => ({
+          id: String(q.id || "").trim(),
+          prompt: String(q.prompt || "").trim(),
+          choices: Array.isArray(q.choices) ? q.choices.map((c) => String(c || "").trim()) : [],
+          answerIndex: q.answerIndex,
+        }))
+        .filter((q) => q.id && q.prompt)
+
+      if (cleaned.length === 0) {
+        setCreateError("Add at least 1 quiz question")
         return
+      }
+
+      for (const q of cleaned) {
+        const choices = q.choices.filter((c) => c.length > 0)
+        if (choices.length < 2) {
+          setCreateError("Each quiz question must have at least 2 choices")
+          return
+        }
+        if (!Number.isInteger(q.answerIndex) || q.answerIndex < 0 || q.answerIndex >= q.choices.length) {
+          setCreateError("Each quiz question must have a valid correct choice")
+          return
+        }
+      }
+
+      payload.quizSpec = {
+        durationMin,
+        questions: cleaned.map((q) => ({
+          id: q.id,
+          prompt: q.prompt,
+          choices: q.choices,
+          answer: q.choices[q.answerIndex],
+        })),
       }
     }
 
@@ -225,8 +268,11 @@ export default function TeacherAssignmentsPage() {
         extendedDueDate: "",
         practicalId: "",
         questionsJson: "",
-        quizJson: "",
+        quizDurationMin: "10",
       }))
+      setQuizQuestions([
+        { id: (globalThis.crypto as any)?.randomUUID?.() || "q1", prompt: "", choices: ["", "", "", ""], answerIndex: 0 },
+      ])
       await loadAssignments()
     } finally {
       setCreating(false)
@@ -272,6 +318,16 @@ export default function TeacherAssignmentsPage() {
                     id="title"
                     value={newAssignment.title}
                     onChange={(e) => setNewAssignment((p) => ({ ...p, title: e.target.value }))}
+                  />
+                </div>
+
+                <div className="grid gap-2 md:col-span-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newAssignment.description}
+                    onChange={(e) => setNewAssignment((p) => ({ ...p, description: e.target.value }))}
+                    className="bg-background"
                   />
                 </div>
 
@@ -375,13 +431,111 @@ export default function TeacherAssignmentsPage() {
 
               {newAssignment.type === "quiz" && (
                 <div className="grid gap-2">
-                  <Label htmlFor="quizJson">Quiz JSON</Label>
-                  <Input
-                    id="quizJson"
-                    placeholder='{"questions":[{"id":"q1","prompt":"...","choices":["A","B"],"answer":"A"}]}'
-                    value={newAssignment.quizJson}
-                    onChange={(e) => setNewAssignment((p) => ({ ...p, quizJson: e.target.value }))}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="quizDurationMin">Time limit (minutes)</Label>
+                      <Input
+                        id="quizDurationMin"
+                        value={newAssignment.quizDurationMin}
+                        onChange={(e) => setNewAssignment((p) => ({ ...p, quizDurationMin: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {quizQuestions.map((q, idx) => (
+                      <div key={q.id} className="rounded-lg border border-border bg-background/50 p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold">Question {idx + 1}</p>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setQuizQuestions((p) => p.filter((x) => x.id !== q.id))}
+                            disabled={quizQuestions.length <= 1}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label>Prompt</Label>
+                          <Input
+                            value={q.prompt}
+                            onChange={(e) =>
+                              setQuizQuestions((p) =>
+                                p.map((x) => (x.id === q.id ? { ...x, prompt: e.target.value } : x)),
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {q.choices.map((c, ci) => (
+                            <div key={ci} className="grid gap-2">
+                              <Label className="text-xs">Choice {ci + 1}</Label>
+                              <Input
+                                value={c}
+                                onChange={(e) =>
+                                  setQuizQuestions((p) =>
+                                    p.map((x) =>
+                                      x.id === q.id
+                                        ? {
+                                            ...x,
+                                            choices: x.choices.map((cc, cci) => (cci === ci ? e.target.value : cc)),
+                                          }
+                                        : x,
+                                    ),
+                                  )
+                                }
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label>Correct choice</Label>
+                          <Select
+                            value={String(q.answerIndex)}
+                            onValueChange={(v) =>
+                              setQuizQuestions((p) => p.map((x) => (x.id === q.id ? { ...x, answerIndex: Number(v) } : x)))
+                            }
+                          >
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Select correct" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {q.choices.map((c, ci) => (
+                                <SelectItem key={ci} value={String(ci)}>
+                                  {c?.trim() ? c : `Choice ${ci + 1}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setQuizQuestions((p) => [
+                            ...p,
+                            {
+                              id: (globalThis.crypto as any)?.randomUUID?.() || `q${p.length + 1}`,
+                              prompt: "",
+                              choices: ["", "", "", ""],
+                              answerIndex: 0,
+                            },
+                          ])
+                        }
+                      >
+                        Add Question
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 

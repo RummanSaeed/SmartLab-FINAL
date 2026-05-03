@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/server-auth"
 
 export async function GET(req: Request) {
-  const authResult = requireAuth(req, ["student", "admin"])
+  const authResult = requireAuth(req, ["student", "admin", "guest"])
   if (!authResult.ok) return authResult.error
+
+  if (authResult.auth.role === "guest") {
+    return NextResponse.json({ notices: [] })
+  }
 
   const p = prisma as any
 

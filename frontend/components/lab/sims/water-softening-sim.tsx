@@ -36,7 +36,7 @@ function Scene({ setup, foam }: { setup: WaterSofteningSetup; foam: number }) {
   const foamOn = foam > 0
   return (
     <>
-      <color attach="background" args={["#020617"]} />
+      <color attach="background" args={["#020817"]} />
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 6, 4]} intensity={1.1} />
 

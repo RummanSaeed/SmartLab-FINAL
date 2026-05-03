@@ -4,7 +4,7 @@ import type { PointerEvent as ReactPointerEvent } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, RotateCcw } from "lucide-react"
+import { CheckCircle, RotateCcw, Ruler, Lightbulb, Eye } from "lucide-react"
 
 type Props = {
   incidentAngleDeg: number
@@ -323,167 +323,410 @@ export function GlassSlabSim({ incidentAngleDeg, refractiveIndex, slabThicknessC
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
-          className="w-full h-[430px] touch-none select-none bg-[#020817]"
+          className="w-full h-[430px] touch-none select-none bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         >
           <defs>
-            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1f2937" strokeWidth="1" /></pattern>
+            {/* Grid pattern */}
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" strokeWidth="0.8" />
+            </pattern>
+            
+            {/* Glass gradient */}
+            <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.15" />
+              <stop offset="50%" stopColor="#67e8f9" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.12" />
+            </linearGradient>
+            
+            {/* Glass shine */}
+            <linearGradient id="glassShine" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
+            </linearGradient>
+            
+            {/* Laser beam gradient */}
+            <linearGradient id="laserRed" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#f87171" stopOpacity="1" />
+              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.9" />
+            </linearGradient>
+            
+            {/* Glow filter */}
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            
+            {/* Soft glow */}
+            <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
           </defs>
 
-          <rect x={BOARD_X} y={BOARD_Y} width={BOARD_W} height={BOARD_H} rx={14} fill={viewSide === "incident" ? "#030f24" : "#061223"} stroke="#1f3b55" />
-          <rect x={BOARD_X} y={BOARD_Y} width={BOARD_W} height={BOARD_H} fill="url(#grid)" opacity="0.6" />
-          <text x={BOARD_X + 10} y={BOARD_Y - 6} fill="#cbd5e1" fontSize="12">Paper board (live scale: 1 cm ≈ {CM_TO_PX}px)</text>
-          <text x={BOARD_X + 10} y={BOARD_Y + 18} fill="#cbd5e1" fontSize="13">
-            System-assisted practical: use step buttons to place slab, pins, and draw construction automatically.
-          </text>
-
-          <g opacity="0.9">
-            <line x1={BOARD_X} y1={BOARD_Y + BOARD_H + 18} x2={BOARD_X + BOARD_W} y2={BOARD_Y + BOARD_H + 18} stroke="#94a3b8" />
+          {/* Lab table surface */}
+          <rect x={BOARD_X - 20} y={BOARD_Y - 20} width={BOARD_W + 40} height={BOARD_H + 60} rx={20} fill="#0f172a" stroke="#1e293b" strokeWidth="2" />
+          <rect x={BOARD_X} y={BOARD_Y} width={BOARD_W} height={BOARD_H} rx={14} fill={viewSide === "incident" ? "#020617" : "#0a0f1c"} stroke="#334155" strokeWidth="1.5" />
+          <rect x={BOARD_X} y={BOARD_Y} width={BOARD_W} height={BOARD_H} fill="url(#grid)" opacity="0.4" />
+          
+          {/* Board label */}
+          <text x={BOARD_X + 10} y={BOARD_Y - 6} fill="#94a3b8" fontSize="11" fontWeight="500">OPTICAL BENCH • Scale: 1 cm = {CM_TO_PX}px</text>
+          
+          {/* Ruler markings */}
+          <g opacity="0.8">
+            <line x1={BOARD_X} y1={BOARD_Y + BOARD_H + 15} x2={BOARD_X + BOARD_W} y2={BOARD_Y + BOARD_H + 15} stroke="#475569" strokeWidth="2" />
             {Array.from({ length: Math.floor(BOARD_W / CM_TO_PX) + 1 }).map((_, k) => (
               <g key={`rx-${k}`}>
-                <line x1={BOARD_X + k * CM_TO_PX} y1={BOARD_Y + BOARD_H + 12} x2={BOARD_X + k * CM_TO_PX} y2={BOARD_Y + BOARD_H + 22} stroke="#94a3b8" />
-                <text x={BOARD_X + k * CM_TO_PX + 2} y={BOARD_Y + BOARD_H + 34} fill="#94a3b8" fontSize="10">{k}</text>
+                <line 
+                  x1={BOARD_X + k * CM_TO_PX} 
+                  y1={BOARD_Y + BOARD_H + 10} 
+                  x2={BOARD_X + k * CM_TO_PX} 
+                  y2={BOARD_Y + BOARD_H + 22} 
+                  stroke="#64748b" 
+                  strokeWidth={k % 5 === 0 ? 2 : 1}
+                />
+                {k % 5 === 0 && (
+                  <text x={BOARD_X + k * CM_TO_PX + 2} y={BOARD_Y + BOARD_H + 36} fill="#94a3b8" fontSize="10" fontWeight="500">{k}</text>
+                )}
               </g>
             ))}
           </g>
 
-          {!slabPlaced && <rect x={targetSlab.x} y={targetSlab.y} width={targetSlab.w} height={targetSlab.h} rx={10} fill="none" stroke="#22d3ee" strokeDasharray="8 6" opacity="0.85" />}
+          {/* Target placement zone */}
+          {!slabPlaced && (
+            <g>
+              <rect x={targetSlab.x} y={targetSlab.y} width={targetSlab.w} height={targetSlab.h} rx={10} fill="none" stroke="#22d3ee" strokeDasharray="8 6" strokeWidth="2" opacity="0.7" />
+              <text x={targetSlab.x + targetSlab.w/2} y={targetSlab.y - 15} textAnchor="middle" fill="#22d3ee" fontSize="12" opacity="0.8">Drop slab here</text>
+            </g>
+          )}
 
+          {/* Glass slab with realistic effects */}
           <g opacity={viewSide === "opposite" ? 0.85 : 1}>
-            <rect x={slabRect.x} y={slabRect.y} width={slabRect.w} height={slabRect.h} rx={10} fill="#67e8f955" stroke="#67e8f9" />
-            <rect x={slabRect.x + 8} y={slabRect.y + 8} width={slabRect.w - 16} height={slabRect.h - 16} rx={8} fill="#bae6fd22" stroke="#cffafe66" />
-            <text x={slabRect.x + 12} y={slabRect.y + 24} fill="#d1fae5" fontSize="12">Glass slab ({slabThicknessCm.toFixed(1)} cm thickness set)</text>
+            {/* Main glass body */}
+            <rect x={slabRect.x} y={slabRect.y} width={slabRect.w} height={slabRect.h} rx={10} fill="url(#glassGrad)" stroke="#22d3ee" strokeWidth="2" />
+            
+            {/* Inner highlight */}
+            <rect x={slabRect.x + 4} y={slabRect.y + 4} width={slabRect.w - 8} height={slabRect.h - 8} rx={8} fill="none" stroke="#67e8f9" strokeWidth="1" opacity="0.5" />
+            
+            {/* Shine effect */}
+            <rect x={slabRect.x + 8} y={slabRect.y + 8} width={slabRect.w - 16} height={slabRect.h/2 - 8} rx={6} fill="url(#glassShine)" opacity="0.6" />
+            
+            {/* Glass label */}
+            <text x={slabRect.x + slabRect.w/2} y={slabRect.y + slabRect.h/2 + 5} textAnchor="middle" fill="#a5f3fc" fontSize="14" fontWeight="600" opacity="0.9">GLASS SLAB</text>
+            <text x={slabRect.x + slabRect.w/2} y={slabRect.y + slabRect.h/2 + 22} textAnchor="middle" fill="#67e8f9" fontSize="11" opacity="0.7">n = {refractiveIndex.toFixed(2)} • {slabThicknessCm.toFixed(1)} cm</text>
+            
+            {/* Corner highlights */}
+            <circle cx={slabRect.x + 15} cy={slabRect.y + 15} r="4" fill="#ffffff" opacity="0.4" />
+            <circle cx={slabRect.x + slabRect.w - 20} cy={slabRect.y + 20} r="2" fill="#ffffff" opacity="0.3" />
           </g>
-
-          {slabPlaced && <rect x={slabRect.x} y={slabRect.y} width={slabRect.w} height={slabRect.h} rx={10} fill="none" stroke="#f8fafc" strokeDasharray="3 4" opacity="0.7" />}
 
           {slabPlaced && (
             <>
-              <line x1={entry.x} y1={slabRect.y - 70} x2={entry.x} y2={slabRect.y + 70} stroke="#94a3b8" strokeDasharray="4 4" />
-              <line x1={exit.x} y1={slabRect.y + slabRect.h - 70} x2={exit.x} y2={slabRect.y + slabRect.h + 70} stroke="#94a3b8" strokeDasharray="4 4" />
-              <text x={entry.x + 6} y={slabRect.y - 8} fill="#94a3b8" fontSize="11">Normal</text>
-              <text x={exit.x + 6} y={slabRect.y + slabRect.h + 14} fill="#94a3b8" fontSize="11">Normal</text>
+              {/* Normal lines with glow */}
+              <line x1={entry.x} y1={slabRect.y - 70} x2={entry.x} y2={slabRect.y + 70} stroke="#64748b" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.8" />
+              <line x1={exit.x} y1={slabRect.y + slabRect.h - 70} x2={exit.x} y2={slabRect.y + slabRect.h + 70} stroke="#64748b" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.8" />
+              
+              {/* Normal labels */}
+              <text x={entry.x + 8} y={slabRect.y - 12} fill="#94a3b8" fontSize="10" fontWeight="500">NORMAL</text>
+              <text x={exit.x + 8} y={slabRect.y + slabRect.h + 20} fill="#94a3b8" fontSize="10" fontWeight="500">NORMAL</text>
+              
+              {/* Entry/exit point markers */}
+              <circle cx={entry.x} cy={entry.y} r="5" fill="#22d3ee" opacity="0.6" />
+              <circle cx={exit.x} cy={exit.y} r="5" fill="#22d3ee" opacity="0.6" />
             </>
           )}
 
           {slabPlaced && (
-            <g opacity="0.9">
-              <path d={`M ${entry.x - 54} ${entry.y} A 54 54 0 0 1 ${entry.x + 54} ${entry.y}`} fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-              {Array.from({ length: 17 }).map((_, k) => {
+            <g opacity="0.95">
+              {/* Protractor base arc */}
+              <path d={`M ${entry.x - 60} ${entry.y} A 60 60 0 0 1 ${entry.x + 60} ${entry.y}`} fill="#0f172a" stroke="#475569" strokeWidth="2" opacity="0.8" />
+              <path d={`M ${entry.x - 60} ${entry.y} A 60 60 0 0 1 ${entry.x + 60} ${entry.y}`} fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+              
+              {/* Angle markings */}
+              {Array.from({ length: 19 }).map((_, k) => {
                 const deg = k * 5
                 const a = degToRad(deg)
-                const x1 = entry.x + Math.sin(a) * 46
-                const y1 = entry.y - Math.cos(a) * 46
-                const x2 = entry.x + Math.sin(a) * (deg % 10 === 0 ? 55 : 51)
-                const y2 = entry.y - Math.cos(a) * (deg % 10 === 0 ? 55 : 51)
+                const isMajor = deg % 10 === 0
+                const r1 = isMajor ? 48 : 52
+                const r2 = isMajor ? 60 : 56
+                const x1 = entry.x + Math.sin(a) * r1
+                const y1 = entry.y - Math.cos(a) * r1
+                const x2 = entry.x + Math.sin(a) * r2
+                const y2 = entry.y - Math.cos(a) * r2
                 return (
                   <g key={`pro-${deg}`}>
-                    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#cbd5e1" strokeWidth="1" />
-                    {deg % 10 === 0 && <text x={entry.x + Math.sin(a) * 64 - 6} y={entry.y - Math.cos(a) * 64 + 4} fill="#cbd5e1" fontSize="9">{deg}</text>}
+                    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={isMajor ? "#e2e8f0" : "#94a3b8"} strokeWidth={isMajor ? 2 : 1} />
+                    {isMajor && (
+                      <text x={entry.x + Math.sin(a) * 70 - 6} y={entry.y - Math.cos(a) * 70 + 4} fill="#e2e8f0" fontSize="10" fontWeight="500">{deg}°</text>
+                    )}
                   </g>
                 )
               })}
-              <text x={entry.x - 18} y={entry.y + 16} fill="#cbd5e1" fontSize="10">Protractor</text>
+              
+              {/* Center point */}
+              <circle cx={entry.x} cy={entry.y} r="4" fill="#22d3ee" />
+              
+              {/* Protractor label */}
+              <text x={entry.x} y={entry.y + 25} textAnchor="middle" fill="#64748b" fontSize="9" fontWeight="500">PROTRACTOR</text>
             </g>
           )}
 
-          {/* Emergence angle marker with normal at exit */}
+          {/* Emergence angle measurement */}
           {slabPlaced && (
-            <g opacity="0.9">
+            <g opacity="0.95">
+              {/* Protractor arc at exit */}
+              <path d={`M ${exit.x - 50} ${exit.y} A 50 50 0 0 0 ${exit.x + 50} ${exit.y}`} fill="#0f172a" stroke="#475569" strokeWidth="1.5" opacity="0.6" />
+              <path d={`M ${exit.x - 50} ${exit.y} A 50 50 0 0 0 ${exit.x + 50} ${exit.y}`} fill="none" stroke="#64748b" strokeWidth="1" />
+              
+              {/* Emergent ray indicator */}
               <path
-                d={`M ${exit.x - 46} ${exit.y} A 46 46 0 0 0 ${exit.x + 46} ${exit.y}`}
+                d={`M ${exit.x} ${exit.y} L ${exit.x + Math.sin(degToRad(calc.eDeg)) * 40} ${exit.y + Math.cos(degToRad(calc.eDeg)) * 40}`}
                 fill="none"
-                stroke="#64748b"
-                strokeWidth="1.2"
+                stroke="#22d3ee"
+                strokeWidth="2.5"
+                filter="url(#softGlow)"
               />
+              
+              {/* Angle arc */}
               <path
-                d={`M ${exit.x} ${exit.y} L ${exit.x + Math.sin(degToRad(calc.eDeg)) * 34} ${exit.y + Math.cos(degToRad(calc.eDeg)) * 34}`}
+                d={`M ${exit.x} ${exit.y + 28} A 28 28 0 0 1 ${exit.x + Math.sin(degToRad(calc.eDeg)) * 28} ${exit.y + Math.cos(degToRad(calc.eDeg)) * 28}`}
                 fill="none"
                 stroke="#22d3ee"
                 strokeWidth="2"
+                strokeDasharray="4 3"
               />
-              <path
-                d={`M ${exit.x} ${exit.y - 24} A 24 24 0 0 1 ${exit.x + Math.sin(degToRad(calc.eDeg)) * 24} ${exit.y + Math.cos(degToRad(calc.eDeg)) * 24}`}
-                fill="none"
-                stroke="#22d3ee"
-                strokeWidth="1.8"
-                strokeDasharray="3 3"
-              />
-              <text x={exit.x + 12} y={exit.y + 18} fill="#67e8f9" fontSize="11">
+              
+              {/* Angle label */}
+              <text x={exit.x + 35} y={exit.y + 25} fill="#22d3ee" fontSize="12" fontWeight="600">
                 e = {calc.eDeg.toFixed(1)}°
               </text>
             </g>
           )}
 
-          {slabPlaced && <line x1={idealIncidentPins.p2.x} y1={idealIncidentPins.p2.y} x2={entry.x} y2={entry.y} stroke="#f59e0b" strokeDasharray="5 5" opacity="0.35" />}
+          {/* Ideal ray path (faint guide) */}
+          {slabPlaced && (
+            <g opacity="0.25">
+              <line x1={idealIncidentPins.p2.x} y1={idealIncidentPins.p2.y} x2={entry.x} y2={entry.y} stroke="#f59e0b" strokeDasharray="8 6" strokeWidth="1.5" />
+              <line x1={exit.x} y1={exit.y} x2={idealEmergentPins.p2.x} y2={idealEmergentPins.p2.y} stroke="#22d3ee" strokeDasharray="8 6" strokeWidth="1.5" />
+            </g>
+          )}
 
+          {/* Pins with metallic appearance */}
           {(["i1", "i2", "e1", "e2"] as PinKey[]).map((key) => {
             if (!pinsPlaced[key]) return null
             const p = pins[key]
-            const color = key.startsWith("i") ? "#f59e0b" : "#22d3ee"
+            const isIncident = key.startsWith("i")
+            const color = isIncident ? "#f59e0b" : "#22d3ee"
             const hiddenByView = (viewSide === "incident" && key.startsWith("e")) || (viewSide === "opposite" && key.startsWith("i"))
             return (
-              <g key={key} opacity={hiddenByView ? 0.3 : 1}>
-                <line x1={p.x} y1={p.y - 16} x2={p.x} y2={p.y + 16} stroke={color} strokeWidth="2" />
-                <circle cx={p.x} cy={p.y} r="6" fill={color} stroke="#fff" />
-                <text x={p.x + 8} y={p.y - 8} fill={color} fontSize="12">{key.toUpperCase()}</text>
+              <g key={key} opacity={hiddenByView ? 0.25 : 1}>
+                {/* Pin head shadow */}
+                <ellipse cx={p.x + 2} cy={p.y + 18} rx="5" ry="3" fill="#000000" opacity="0.3" />
+                
+                {/* Pin shaft */}
+                <line x1={p.x} y1={p.y - 20} x2={p.x} y2={p.y + 20} stroke="#cbd5e1" strokeWidth="3" />
+                <line x1={p.x} y1={p.y - 20} x2={p.x} y2={p.y + 20} stroke="#64748b" strokeWidth="1.5" />
+                
+                {/* Pin head */}
+                <circle cx={p.x} cy={p.y - 20} r="8" fill={color} stroke="#fff" strokeWidth="2" filter="url(#softGlow)" />
+                <circle cx={p.x} cy={p.y - 20} r="4" fill="#ffffff" opacity="0.6" />
+                
+                {/* Label */}
+                <text x={p.x + 12} y={p.y - 24} fill={color} fontSize="13" fontWeight="600">{key.toUpperCase()}</text>
+                {isIncident && <text x={p.x + 12} y={p.y - 10} fill="#94a3b8" fontSize="9">Object</text>}
+                {!isIncident && <text x={p.x + 12} y={p.y - 10} fill="#94a3b8" fontSize="9">Image</text>}
               </g>
             )
           })}
 
-          {lineI && <line x1={lineI[0].x} y1={lineI[0].y} x2={lineI[1].x} y2={lineI[1].y} stroke="#f59e0b" strokeWidth="2.5" opacity={viewSide === "incident" ? 1 : 0.35} />}
-          {lineE && <line x1={lineE[0].x} y1={lineE[0].y} x2={lineE[1].x} y2={lineE[1].y} stroke="#22d3ee" strokeWidth="2.5" opacity={viewSide === "opposite" ? 1 : 0.35} />}
-
-          {slabPlaced && (
-            <>
-              <line x1={entry.x} y1={entry.y} x2={exit.x} y2={exit.y} stroke="#38bdf8" strokeWidth="2.5" opacity="0.65" />
-              <line x1={exit.x} y1={exit.y} x2={idealEmergentPins.p2.x} y2={idealEmergentPins.p2.y} stroke="#38bdf8" strokeDasharray="4 5" opacity="0.45" />
-            </>
+          {/* Ray beams with laser-like glow */}
+          {lineI && (
+            <g opacity={viewSide === "incident" ? 1 : 0.3}>
+              {/* Glow layer */}
+              <line x1={lineI[0].x} y1={lineI[0].y} x2={lineI[1].x} y2={lineI[1].y} stroke="#f59e0b" strokeWidth="8" opacity="0.2" filter="url(#glow)" />
+              {/* Main beam */}
+              <line x1={lineI[0].x} y1={lineI[0].y} x2={lineI[1].x} y2={lineI[1].y} stroke="#fbbf24" strokeWidth="3" filter="url(#softGlow)" />
+              {/* Core */}
+              <line x1={lineI[0].x} y1={lineI[0].y} x2={lineI[1].x} y2={lineI[1].y} stroke="#fef3c7" strokeWidth="1.5" />
+            </g>
+          )}
+          
+          {lineE && (
+            <g opacity={viewSide === "opposite" ? 1 : 0.3}>
+              {/* Glow layer */}
+              <line x1={lineE[0].x} y1={lineE[0].y} x2={lineE[1].x} y2={lineE[1].y} stroke="#22d3ee" strokeWidth="8" opacity="0.2" filter="url(#glow)" />
+              {/* Main beam */}
+              <line x1={lineE[0].x} y1={lineE[0].y} x2={lineE[1].x} y2={lineE[1].y} stroke="#22d3ee" strokeWidth="3" filter="url(#softGlow)" />
+              {/* Core */}
+              <line x1={lineE[0].x} y1={lineE[0].y} x2={lineE[1].x} y2={lineE[1].y} stroke="#cffafe" strokeWidth="1.5" />
+            </g>
           )}
 
+          {/* Refracted ray inside slab */}
+          {slabPlaced && (
+            <g opacity="0.7">
+              <line x1={entry.x} y1={entry.y} x2={exit.x} y2={exit.y} stroke="#38bdf8" strokeWidth="4" opacity="0.3" filter="url(#glow)" />
+              <line x1={entry.x} y1={entry.y} x2={exit.x} y2={exit.y} stroke="#7dd3fc" strokeWidth="2" />
+              {/* Arrow indicating direction */}
+              <polygon points={`${(entry.x + exit.x)/2 - 5},${(entry.y + exit.y)/2 - 5} ${(entry.x + exit.x)/2 + 5},${(entry.y + exit.y)/2} ${(entry.x + exit.x)/2 - 5},${(entry.y + exit.y)/2 + 5}`} fill="#38bdf8" opacity="0.8" />
+            </g>
+          )}
+
+          {/* User drawn construction lines */}
           {drawnLines.map((l, idx) => {
             const color = l.kind === "normal" ? "#e2e8f0" : l.kind === "incident" ? "#f59e0b" : l.kind === "emergent" ? "#22d3ee" : "#a78bfa"
-            return <line key={`dl-${idx}`} x1={l.a.x} y1={l.a.y} x2={l.b.x} y2={l.b.y} stroke={color} strokeWidth={l.kind === "normal" ? 1.8 : 2.2} strokeDasharray={l.kind === "outline" ? "4 4" : undefined} opacity="0.9" />
+            const width = l.kind === "normal" ? 2 : 2.5
+            return (
+              <g key={`dl-${idx}`}>
+                <line x1={l.a.x} y1={l.a.y} x2={l.b.x} y2={l.b.y} stroke={color} strokeWidth={width + 2} opacity="0.3" filter="url(#glow)" />
+                <line x1={l.a.x} y1={l.a.y} x2={l.b.x} y2={l.b.y} stroke={color} strokeWidth={width} strokeDasharray={l.kind === "outline" ? "5 5" : undefined} opacity="0.9" />
+              </g>
+            )
           })}
-          {drawStart && <circle cx={drawStart.x} cy={drawStart.y} r="4" fill="#f8fafc" stroke="#0ea5e9" />}
+          
+          {/* Active drawing point */}
+          {drawStart && (
+            <g>
+              <circle cx={drawStart.x} cy={drawStart.y} r="8" fill="#0ea5e9" opacity="0.3" filter="url(#glow)" />
+              <circle cx={drawStart.x} cy={drawStart.y} r="5" fill="#f8fafc" stroke="#0ea5e9" strokeWidth="2" />
+            </g>
+          )}
 
-          {pinsPlaced.i1 && pinsPlaced.i2 && <text x={BOARD_X + 10} y={BOARD_Y + BOARD_H - 12} fill="#fbbf24" fontSize="12">Incident pin spacing: {(dist(pins.i1, pins.i2) / CM_TO_PX).toFixed(2)} cm</text>}
-          {pinsPlaced.e1 && pinsPlaced.e2 && <text x={BOARD_X + 260} y={BOARD_Y + BOARD_H - 12} fill="#67e8f9" fontSize="12">Emergent pin spacing: {(dist(pins.e1, pins.e2) / CM_TO_PX).toFixed(2)} cm</text>}
+          {/* Measurements display */}
+          {pinsPlaced.i1 && pinsPlaced.i2 && (
+            <g>
+              <rect x={BOARD_X + 5} y={BOARD_Y + BOARD_H - 28} width={180} height="22" rx="4" fill="#0f172a" stroke="#f59e0b" strokeWidth="1" opacity="0.9" />
+              <text x={BOARD_X + 95} y={BOARD_Y + BOARD_H - 12} textAnchor="middle" fill="#fbbf24" fontSize="11" fontWeight="500">
+                Object pins: {(dist(pins.i1, pins.i2) / CM_TO_PX).toFixed(2)} cm
+              </text>
+            </g>
+          )}
+          
+          {pinsPlaced.e1 && pinsPlaced.e2 && (
+            <g>
+              <rect x={BOARD_X + 200} y={BOARD_Y + BOARD_H - 28} width={180} height="22" rx="4" fill="#0f172a" stroke="#22d3ee" strokeWidth="1" opacity="0.9" />
+              <text x={BOARD_X + 290} y={BOARD_Y + BOARD_H - 12} textAnchor="middle" fill="#22d3ee" fontSize="11" fontWeight="500">
+                Image pins: {(dist(pins.e1, pins.e2) / CM_TO_PX).toFixed(2)} cm
+              </text>
+            </g>
+          )}
+          
+          {/* Lateral shift measurement */}
+          {derived.lateralUser !== null && (
+            <g>
+              <line 
+                x1={(pins.i1.x + pins.i2.x) / 2} 
+                y1={slabRect.y + slabRect.h + 45} 
+                x2={(pins.e1.x + pins.e2.x) / 2} 
+                y2={slabRect.y + slabRect.h + 45} 
+                stroke="#a855f7" 
+                strokeWidth="2" 
+                strokeDasharray="4 2"
+                markerStart="url(#arrowL)"
+                markerEnd="url(#arrowR)"
+              />
+              <rect 
+                x={((pins.i1.x + pins.i2.x) / 2 + (pins.e1.x + pins.e2.x) / 2) / 2 - 50} 
+                y={slabRect.y + slabRect.h + 50} 
+                width="100" 
+                height="18" 
+                rx="3" 
+                fill="#a855f7" 
+                opacity="0.9" 
+              />
+              <text 
+                x={((pins.i1.x + pins.i2.x) / 2 + (pins.e1.x + pins.e2.x) / 2) / 2} 
+                y={slabRect.y + slabRect.h + 63} 
+                textAnchor="middle" 
+                fill="#ffffff" 
+                fontSize="10" 
+                fontWeight="600"
+              >
+                Lateral shift: {derived.lateralUser.toFixed(2)} cm
+              </text>
+            </g>
+          )}
         </svg>
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-card/40 p-4 space-y-2 text-sm">
-        <div className="font-semibold">Student Guidance (Practical Method)</div>
-        <ol className="list-decimal ml-5 space-y-1 text-muted-foreground">
-          <li>Place the glass slab on the sheet and trace its outline.</li>
-          <li>Draw a normal and choose angle of incidence from Parameters.</li>
-          <li>Place two object pins on the incident ray line.</li>
-          <li>Switch to opposite-side view and align/place two image pins to trace the emergent ray.</li>
-          <li>Join points, measure i and e. Observe that angle of emergence is nearly equal to angle of incidence.</li>
-          <li>Measure lateral shift and record readings.</li>
-        </ol>
-        <div className="rounded-lg border border-border/50 bg-background/30 p-3 text-xs text-muted-foreground">
-          Tip: Use drawing buttons to manually construct the outline/normal/rays. Use the protractor overlay at the point of incidence to estimate angles like the real practical.
+      <div className="rounded-xl border border-border/60 bg-card/40 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Lightbulb className="w-4 h-4 text-yellow-500" />
+          <span className="font-semibold">Experimental Procedure</span>
         </div>
-        <div className="text-xs text-muted-foreground">
-          In a rectangular glass slab, the emergent ray is parallel to the incident ray, so angle of emergence <span className="text-foreground font-medium">e ≈ i</span>.
+        <div className="grid md:grid-cols-2 gap-4">
+          <ol className="list-decimal ml-5 space-y-2 text-sm text-muted-foreground">
+            <li className={step >= 1 ? "text-foreground" : ""}><span className="font-medium">Setup:</span> Place glass slab on optical bench</li>
+            <li className={step >= 2 ? "text-foreground" : ""}><span className="font-medium">Incident ray:</span> Place object pins (I₁, I₂) along incident ray</li>
+            <li className={step >= 3 ? "text-foreground" : ""}><span className="font-medium">Emergent ray:</span> View from opposite side, place image pins (E₁, E₂)</li>
+            <li className={step >= 4 ? "text-foreground" : ""}><span className="font-medium">Measurement:</span> Use protractor to measure angles i, r, e</li>
+          </ol>
+          <div className="space-y-2">
+            <div className="rounded-lg border border-border/50 bg-background/30 p-3 text-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <Ruler className="w-4 h-4 text-cyan-500" />
+                <span className="font-medium">Key Measurements</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div>• Angle of incidence (i)</div>
+                <div>• Angle of refraction (r)</div>
+                <div>• Angle of emergence (e)</div>
+                <div>• Lateral displacement (d)</div>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground bg-blue-500/10 p-2 rounded border border-blue-500/20">
+              <strong>Physics Principle:</strong> In a rectangular glass slab, the emergent ray is parallel to the incident ray (e ≈ i), but displaced laterally. Refractive index n = sin(i)/sin(r).
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-        <div className="font-semibold mb-2">Observation Table (Glass Slab)</div>
+        <div className="font-semibold mb-3 flex items-center gap-2">
+          <Eye className="w-4 h-4 text-cyan-500" />
+          Observation Table (Glass Slab Refraction)
+        </div>
         {trials.length === 0 ? (
-          <div className="text-sm text-muted-foreground">Place slab and pins, then record a trial. Vary incident angle for repeat observations.</div>
+          <div className="text-sm text-muted-foreground p-4 bg-slate-900/30 rounded-lg border border-dashed border-border/50">
+            Complete the experiment setup and record your first trial. Vary the incident angle for multiple observations to calculate the mean refractive index.
+          </div>
         ) : (
-          <div className="space-y-2 text-sm">
-            <div className="grid grid-cols-5 gap-2 text-muted-foreground"><div>i (°)</div><div>r (°)</div><div>e (°)</div><div>Lateral shift (cm)</div><div>n = sin i / sin r</div></div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-6 gap-2 text-xs text-muted-foreground uppercase tracking-wider font-medium">
+              <div>Trial</div>
+              <div className="text-center">i (°)</div>
+              <div className="text-center">r (°)</div>
+              <div className="text-center">e (°)</div>
+              <div className="text-center">Shift (cm)</div>
+              <div className="text-center">n = sin(i)/sin(r)</div>
+            </div>
             {trials.map((t, idx) => (
-              <div key={idx} className="grid grid-cols-5 gap-2 border-t border-border/40 pt-2"><div>{t.i.toFixed(1)}</div><div>{t.r.toFixed(1)}</div><div>{t.e.toFixed(1)}</div><div>{t.lateral.toFixed(2)}</div><div>{t.nCalc.toFixed(3)}</div></div>
+              <div key={idx} className="grid grid-cols-6 gap-2 border-t border-border/40 pt-2 text-sm items-center">
+                <div className="text-muted-foreground">#{idx + 1}</div>
+                <div className="text-center font-mono text-amber-400">{t.i.toFixed(1)}°</div>
+                <div className="text-center font-mono">{t.r.toFixed(1)}°</div>
+                <div className="text-center font-mono text-cyan-400">{t.e.toFixed(1)}°</div>
+                <div className="text-center font-mono">{t.lateral.toFixed(2)}</div>
+                <div className="text-center font-mono font-semibold text-green-400">{t.nCalc.toFixed(3)}</div>
+              </div>
             ))}
-            <div className="border-t border-border/40 pt-2 text-muted-foreground">Mean refractive index approx <span className="font-semibold text-foreground">{meanN?.toFixed(3) ?? "--"}</span></div>
+            <div className="border-t border-border/40 pt-3 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Mean Refractive Index:</span>
+                <span className="text-xl font-bold text-green-400 font-mono">{meanN?.toFixed(3) ?? "--"}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Expected for glass: 1.50 - 1.65
+              </div>
+            </div>
           </div>
         )}
       </div>

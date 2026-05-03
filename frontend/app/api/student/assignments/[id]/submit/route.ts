@@ -26,6 +26,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       extendedDueDate: true,
       classId: true,
       practicalId: true,
+      quizSpec: true,
+      questionsSpec: true,
     },
   })
   if (!assignment) return NextResponse.json({ error: "Assignment not found" }, { status: 404 })
@@ -66,6 +68,23 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return NextResponse.json({ error: "answers are required" }, { status: 400 })
   }
 
+  if (assignment.type === "quiz") {
+    const attempt = await prisma.assignmentSubmission.findUnique({
+      where: { assignmentId_studentId: { assignmentId: assignment.id, studentId: actor.id } },
+      select: { id: true, startedAt: true, endsAt: true, status: true },
+    })
+
+    if (!attempt?.startedAt || !attempt?.endsAt) {
+      return NextResponse.json({ error: "Quiz not started" }, { status: 400 })
+    }
+    if (now > attempt.endsAt) {
+      return NextResponse.json({ error: "Quiz time window ended" }, { status: 403 })
+    }
+    if (attempt.status === "graded") {
+      return NextResponse.json({ error: "Quiz already submitted" }, { status: 409 })
+    }
+  }
+
   const submission = await prisma.assignmentSubmission.upsert({
     where: { assignmentId_studentId: { assignmentId: assignment.id, studentId: actor.id } },
     update: {
@@ -82,6 +101,55 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       runId,
     },
   })
+
+  if (assignment.type === "quiz" && assignment.quizSpec && answers) {
+    const spec: any = assignment.quizSpec as any
+    const questions: any[] = Array.isArray(spec?.questions) ? spec.questions : []
+    const responseMap: Record<string, any> =
+      typeof (answers as any)?.responses === "object" && (answers as any)?.responses
+        ? (answers as any).responses
+        : typeof (answers as any)?.answers === "object" && (answers as any)?.answers
+          ? (answers as any).answers
+          : {}
+
+    let total = 0
+    let correct = 0
+    for (const q of questions) {
+      const id = q?.id != null ? String(q.id) : ""
+      const key = id || ""
+      const expected = q?.answer
+      if (!key) continue
+      if (expected == null) continue
+      total += 1
+      const got = responseMap[key]
+      if (got === expected) correct += 1
+    }
+
+    if (total > 0) {
+      const score = (correct / total) * 100
+      const graded = await prisma.assignmentSubmission.update({
+        where: { id: submission.id },
+        data: {
+          score,
+          gradedAt: new Date(),
+          status: "graded",
+          feedback: "Auto-graded",
+        },
+      })
+
+      await prisma.notification.create({
+        data: {
+          userId: actor.id,
+          type: "submission_graded" as any,
+          title: "Quiz submitted and graded",
+          body: `Score: ${Math.round(score)}%`,
+          meta: { assignmentId: assignment.id, submissionId: graded.id },
+        },
+      })
+
+      return NextResponse.json({ submission: graded }, { status: 201 })
+    }
+  }
 
   return NextResponse.json({ submission }, { status: 201 })
 }

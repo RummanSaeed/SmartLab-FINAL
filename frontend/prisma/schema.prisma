@@ -80,6 +80,8 @@ model User {
   experimentRuns ExperimentRun[]
   tutorMessages  TutorMessage[]
   experimentFeedback ExperimentFeedback[]
+  sentMessages     ChatMessage[] @relation("SentMessages")
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
   createdAt    DateTime @default(now())
 }
 
@@ -115,6 +117,8 @@ model AssignmentSubmission {
   studentId    String
   student      User     @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
   status       String   @default("submitted")
+  startedAt    DateTime?
+  endsAt       DateTime?
   submittedAt  DateTime @default(now())
   answers      Json?
   runId        String?
@@ -304,4 +308,19 @@ model ExperimentFeedback {
   @@unique([authorId, practicalId])
   @@index([practicalId, updatedAt])
   @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid())
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  content     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([senderId, receiverId, createdAt])
 }

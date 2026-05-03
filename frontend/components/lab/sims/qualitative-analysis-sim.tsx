@@ -122,7 +122,7 @@ function Scene({ activeTube, reagentAdded, observation, flameTest }: any) {
   
   return (
     <>
-      <color attach="background" args={["#f7fafc"]} />
+      <color attach="background" args={["#020817"]} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 8, 5]} intensity={1} castShadow />
       

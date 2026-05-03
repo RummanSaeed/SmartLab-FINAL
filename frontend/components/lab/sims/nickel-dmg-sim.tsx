@@ -78,7 +78,7 @@ function BuchnerFunnel({ hasPrecipitate }: { hasPrecipitate: boolean }) {
     <group position={[2, -0.3, 0]}>
       {/* Funnel */}
       <mesh position={[0, 0.5, 0]}>
-        <coneGeometry args={[0.4, 0.6, 32]} openEnded />
+        <coneGeometry args={[0.4, 0.6, 32]} />
         <meshStandardMaterial color="#e2e8f0" side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0, 0, 0]}>
@@ -122,13 +122,13 @@ function BuchnerFunnel({ hasPrecipitate }: { hasPrecipitate: boolean }) {
 function Scene({ hasNickel, dmgAdded, precipitate, hasFilter }: any) {
   return (
     <>
-      <color attach="background" args={["#f7fafc"]} />
+      <color attach="background" args={["#020817"]} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 8, 5]} intensity={1} castShadow />
       
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
         <planeGeometry args={[20, 10]} />
-        <meshStandardMaterial color="#e2e8f0" />
+        <meshStandardMaterial color="#334155" />
       </mesh>
       
       <ReactionBeaker hasNickel={hasNickel} dmgAdded={dmgAdded} precipitate={precipitate} />

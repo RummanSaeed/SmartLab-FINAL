@@ -157,14 +157,14 @@ function Balance({ weight, displayWeight }: { weight: number; displayWeight: num
 function Scene({ sampleWeight, isHeated, waterLoss, displayWeight }: any) {
   return (
     <>
-      <color attach="background" args={["#f7fafc"]} />
+      <color attach="background" args={["#020817"]} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 8, 5]} intensity={1} castShadow />
       {isHeated && <pointLight position={[0, -0.3, 0]} intensity={1} color="#ed8936" />}
       
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
         <planeGeometry args={[20, 10]} />
-        <meshStandardMaterial color="#e2e8f0" />
+        <meshStandardMaterial color="#334155" />
       </mesh>
       
       <Crucible sampleWeight={sampleWeight} isHeated={isHeated} waterLoss={waterLoss} />

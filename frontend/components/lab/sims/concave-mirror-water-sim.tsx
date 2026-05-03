@@ -6,6 +6,7 @@ import { OrbitControls, Line, Html } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, RotateCcw, CheckCircle2 } from "lucide-react"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = {
   radiusCm: number
@@ -36,65 +37,121 @@ function MirrorScene({ radiusCm, waterDepthCm, step }: Props & { step: number })
 
   return (
     <>
-      <color attach="background" args={["#020817"]} />
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[3, 4, 2]} intensity={1} />
+      <LabEnvironment benchY={-1.1} benchSize={10} />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]}>
-        <planeGeometry args={[8, 8]} />
-        <meshStandardMaterial color="#0f172a" />
+      {/* Mirror stand base */}
+      <mesh position={[0, -0.45, 0]} castShadow>
+        <cylinderGeometry args={[1.4, 1.5, 0.15, 48]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.6} />
       </mesh>
 
-      <mesh position={[0, -0.35, 0]}>
-        <cylinderGeometry args={[1.1, 1.2, 0.35, 48]} />
-        <meshStandardMaterial color="#374151" metalness={0.4} roughness={0.35} />
+      {/* Mirror rim/dish */}
+      <mesh position={[0, -0.28, 0]} castShadow>
+        <cylinderGeometry args={[1.15, 1.25, 0.2, 64]} />
+        <meshStandardMaterial color="#334155" metalness={0.7} roughness={0.4} />
       </mesh>
 
-      <mesh position={[0, -0.15, 0]}>
-        <cylinderGeometry args={[0.9, 0.95, 0.1, 48]} />
-        <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.25} />
+      {/* Mirror reflective surface - concave */}
+      <mesh position={[0, -0.18, 0]}>
+        <cylinderGeometry args={[0.95, 0.85, 0.08, 64, 1, true]} />
+        <meshStandardMaterial 
+          color="#e2e8f0" 
+          metalness={0.95} 
+          roughness={0.05} 
+          envMapIntensity={1}
+        />
       </mesh>
 
+      {/* Water in mirror */}
       {step >= 1 && (
-        <mesh position={[0, -0.1 + waterH / 2, 0]}>
-          <cylinderGeometry args={[0.88, 0.88, waterH, 48]} />
+        <mesh position={[0, -0.14 + waterH / 2, 0]}>
+          <cylinderGeometry args={[0.88, 0.88, waterH, 64]} />
           <meshPhysicalMaterial
-            color="#67e8f9"
+            color="#06b6d4"
             transparent
-            opacity={0.45}
-            transmission={0.7}
-            roughness={0.05}
+            opacity={0.35}
+            transmission={0.85}
+            roughness={0.02}
+            ior={1.33}
+            thickness={0.5}
+            attenuationColor="#0891b2"
+            attenuationDistance={0.5}
           />
         </mesh>
       )}
 
-      <Line points={[[0, 0.55, 0], [0, -0.05, 0]]} color="#94a3b8" lineWidth={2} />
-      {step >= 2 && <Line points={[[0, 0.55, 0], [0.45, 0.18, 0]]} color="#f59e0b" lineWidth={2} />}
-      {step >= 3 && <Line points={[[0, 0.55, 0], [0.38, 0.05, 0]]} color="#22d3ee" lineWidth={2} />}
-
-      <mesh position={[0, R * 0.35, 0.05]}>
-        <sphereGeometry args={[0.03, 16, 16]} />
-        <meshStandardMaterial color="#f59e0b" />
-      </mesh>
-
-      {step >= 3 && (
-        <mesh position={[0, app * 0.3, 0.05]}>
-          <sphereGeometry args={[0.03, 16, 16]} />
-          <meshStandardMaterial color="#22d3ee" />
+      {/* Water surface meniscus effect */}
+      {step >= 1 && (
+        <mesh position={[0, -0.14 + waterH, 0]}>
+          <cylinderGeometry args={[0.88, 0.88, 0.005, 64]} />
+          <meshPhysicalMaterial
+            color="#22d3ee"
+            transparent
+            opacity={0.6}
+            transmission={0.9}
+            roughness={0.01}
+          />
         </mesh>
       )}
 
-      {step >= 3 && (
-        <Html position={[0.55, 0.25, 0]} center>
-          <div className="rounded bg-background/80 px-2 py-1 text-xs border border-border/50">Apparent center</div>
+      {/* Measurement rod stand */}
+      <mesh position={[-0.8, 0.2, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} />
+        <meshStandardMaterial color="#475569" metalness={0.8} roughness={0.3} />
+      </mesh>
+
+      {/* Horizontal measurement scale */}
+      <mesh position={[0, 0.55, 0]} castShadow>
+        <boxGeometry args={[2.4, 0.015, 0.04]} />
+        <meshStandardMaterial color="#64748b" metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* Tick marks on scale */}
+      {Array.from({ length: 13 }).map((_, i) => (
+        <mesh key={i} position={[-1.1 + i * 0.183, 0.54, 0]}>
+          <boxGeometry args={[0.01, 0.025, 0.015]} />
+          <meshStandardMaterial color="#94a3b8" />
+        </mesh>
+      ))}
+
+      {/* Radius measurement line - gold */}
+      <Line points={[[0, 0.55, 0], [0, -0.18, 0]]} color="#f59e0b" lineWidth={2.5} />
+      
+      {/* Apparent radius line - cyan (with water) */}
+      {step >= 1 && (
+        <Line points={[[0, 0.55, 0], [0, -0.14 + waterH - 0.05, 0]]} color="#22d3ee" lineWidth={2.5} />
+      )}
+
+      {/* Real center marker (gold sphere) */}
+      <mesh position={[0, -0.18, 0.05]}>
+        <sphereGeometry args={[0.04, 24, 24]} />
+        <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={0.2} />
+      </mesh>
+
+      {/* Apparent center marker (cyan sphere with water) */}
+      {step >= 1 && (
+        <mesh position={[0, app * 0.35 - 0.05, 0.05]}>
+          <sphereGeometry args={[0.04, 24, 24]} />
+          <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={0.2} />
+        </mesh>
+      )}
+
+      {/* Labels */}
+      <Html position={[-0.65, 0.6, 0]} center>
+        <div className="rounded bg-background/90 px-2 py-1 text-xs border border-border/50 font-mono">Scale</div>
+      </Html>
+
+      {step >= 2 && (
+        <Html position={[0.65, 0.35, 0]} center>
+          <div className="rounded bg-cyan-500/20 px-2 py-1 text-xs border border-cyan-500/50 text-cyan-300">Apparent center</div>
         </Html>
       )}
 
-      <Html position={[-0.55, 0.35, 0]} center>
-        <div className="rounded bg-background/80 px-2 py-1 text-xs border border-border/50">Real center</div>
+      <Html position={[-0.65, 0, 0]} center>
+        <div className="rounded bg-amber-500/20 px-2 py-1 text-xs border border-amber-500/50 text-amber-300">Real center (R)</div>
       </Html>
 
-      <OrbitControls enablePan={false} minDistance={2.8} maxDistance={5.5} target={[0, -0.2, 0]} />
+      <OrbitControls enablePan={false} minDistance={2.5} maxDistance={5.5} target={[0, -0.15, 0]} />
     </>
   )
 }

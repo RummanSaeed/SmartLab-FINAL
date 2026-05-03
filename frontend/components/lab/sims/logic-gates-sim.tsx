@@ -4,19 +4,14 @@ import { useMemo } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = { gate: "AND" | "OR" | "NOT"; a: 0 | 1; b: 0 | 1 }
 
 function LogicBoard3D({ gate, a, b, out }: { gate: Props["gate"]; a: number; b: number; out: number }) {
   return (
     <Canvas camera={{ position: [0, 2.1, 4.6], fov: 45 }}>
-      <color attach="background" args={["#020817"]} />
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[2, 4, 2]} intensity={1} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]}>
-        <planeGeometry args={[8, 8]} />
-        <meshStandardMaterial color="#0b1220" />
-      </mesh>
+      <LabEnvironment benchY={-1.05} benchSize={8} />
 
       <mesh position={[0, -0.6, 0]}>
         <boxGeometry args={[3.6, 0.2, 2]} />

@@ -97,7 +97,7 @@ function LabTable() {
   return (
     <mesh position={[0, -1.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[8, 6]} />
-      <meshStandardMaterial color="#e2e8f0" roughness={0.8} />
+      <meshStandardMaterial color="#334155" roughness={0.8} />
     </mesh>
   )
 }
@@ -169,7 +169,7 @@ export function OxalicMolaritySim() {
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden h-[400px]">
         <Canvas camera={{ position: [3, 2, 4], fov: 50 }}>
-          <color attach="background" args={["#f8fafc"]} />
+          <color attach="background" args={["#020817"]} />
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 10, 5]} intensity={1.2} />
           <pointLight position={[-5, 5, -5]} intensity={0.5} />

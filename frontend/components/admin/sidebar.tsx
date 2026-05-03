@@ -15,20 +15,10 @@ import {
   LogOut,
   ChevronLeft,
   User,
-  GraduationCap,
-  School,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
@@ -107,34 +97,6 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {!collapsed && (
-        <div className="px-4 pb-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent">
-                <Shield className="w-4 h-4 text-accent" />
-                Switch Role
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Demo Roles</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/student/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <GraduationCap className="w-4 h-4 text-primary" />
-                  Student
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/teacher/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <School className="w-4 h-4 text-secondary" />
-                  Teacher
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
 
       {/* User Profile */}
       <div className="p-4 border-t border-border/50">

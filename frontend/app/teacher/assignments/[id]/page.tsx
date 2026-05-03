@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TeacherSidebar } from "@/components/teacher/sidebar"
 
@@ -213,7 +214,7 @@ export default function TeacherAssignmentDetailPage({ params }: { params: { id: 
                       </div>
                       <div className="grid gap-2 md:col-span-2">
                         <Label>Feedback</Label>
-                        <Input
+                        <Textarea
                           value={gradeInputs[s.id]?.feedback ?? ""}
                           onChange={(e) =>
                             setGradeInputs((p) => ({
@@ -221,6 +222,7 @@ export default function TeacherAssignmentDetailPage({ params }: { params: { id: 
                               [s.id]: { score: p[s.id]?.score ?? "", feedback: e.target.value },
                             }))
                           }
+                          className="bg-background"
                         />
                       </div>
                       <div className="md:col-span-3 flex justify-end">

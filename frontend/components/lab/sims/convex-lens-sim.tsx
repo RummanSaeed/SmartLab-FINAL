@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, RotateCcw, Lightbulb, Eye } from "lucide-react"
 import * as THREE from "three"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = { objectDistanceCm: number; lensPowerD: number; objectHeightCm: number }
 type Trial = { u:number; v:number; f:number; m:number }
@@ -211,17 +212,11 @@ function Scene({
 
   return (
     <>
-      <color attach="background" args={["#0a0f1a"]} />
+      <LabEnvironment benchY={-0.55} benchSize={14} />
+
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 8, 3]} intensity={1} castShadow />
       <directionalLight position={[-5, 6, -3]} intensity={0.3} />
-      <pointLight position={[0, 2, 2]} intensity={0.5} />
-
-      {/* Lab bench */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-        <planeGeometry args={[20, 10]} />
-        <meshStandardMaterial color="#1e293b" metalness={0.1} roughness={0.9} />
-      </mesh>
 
       {/* Optical bench */}
       <OpticalBench />

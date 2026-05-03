@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
 import type { Mesh } from "three"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = { magnetStrength: number; probeX: number; probeY: number }
 
@@ -55,13 +56,19 @@ export function FieldLinesSim({ magnetStrength, probeX, probeY }: Props) {
       </div>
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden h-[360px]">
         <Canvas camera={{ position: [0, 3.6, 4.2], fov: 45 }}>
-          <color attach="background" args={["#020817"]} />
-          <ambientLight intensity={0.85} />
-          <directionalLight position={[2, 4, 3]} intensity={1} />
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]}><planeGeometry args={[8, 8]} /><meshStandardMaterial color="#0f172a" /></mesh>
-          <mesh position={[0, -0.1, 0]}><boxGeometry args={[2.2, 0.3, 0.7]} /><meshStandardMaterial color="#ef4444" /></mesh>
-          <mesh position={[-0.9, -0.1, 0.36]}><boxGeometry args={[0.4, 0.32, 0.02]} /><meshStandardMaterial color="#60a5fa" /></mesh>
-          <mesh position={[0.9, -0.1, 0.36]}><boxGeometry args={[0.4, 0.32, 0.02]} /><meshStandardMaterial color="#f97316" /></mesh>
+          <LabEnvironment benchY={-1.1} benchSize={10} />
+          <mesh position={[0, -0.1, 0]} castShadow>
+            <boxGeometry args={[2.35, 0.34, 0.75]} />
+            <meshStandardMaterial color="#dc2626" metalness={0.35} roughness={0.35} />
+          </mesh>
+          <mesh position={[-0.92, -0.1, 0.38]} castShadow>
+            <boxGeometry args={[0.46, 0.35, 0.03]} />
+            <meshStandardMaterial color="#60a5fa" metalness={0.25} roughness={0.4} emissive="#1d4ed8" emissiveIntensity={0.12} />
+          </mesh>
+          <mesh position={[0.92, -0.1, 0.38]} castShadow>
+            <boxGeometry args={[0.46, 0.35, 0.03]} />
+            <meshStandardMaterial color="#fb923c" metalness={0.25} roughness={0.4} emissive="#c2410c" emissiveIntensity={0.12} />
+          </mesh>
           <AnimatedLines strength={magnetStrength} />
           <mesh position={[probeX * 2.2, -0.02, probeY * 2.2]} rotation={[0, (-field.ang * Math.PI) / 180, 0]}>
             <cylinderGeometry args={[0.15, 0.15, 0.03, 24]} /><meshStandardMaterial color="#e5e7eb" />

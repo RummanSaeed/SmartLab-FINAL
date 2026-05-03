@@ -18,16 +18,8 @@ import {
   Shield,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { NotificationsBell } from "@/components/notifications-bell"
+import { Button } from "@/components/ui/button"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/teacher/dashboard" },
@@ -37,6 +29,7 @@ const menuItems = [
   { icon: School, label: "Notices", href: "/teacher/notices" },
   { icon: Shield, label: "Resources", href: "/teacher/resources" },
   { icon: BarChart3, label: "Reports", href: "/teacher/reports" },
+  { icon: MessageSquare, label: "Chat", href: "/teacher/chat" },
   { icon: MessageSquare, label: "AI Tutor", href: "/teacher/ai-tutor" },
   { icon: User, label: "Profile", href: "/teacher/profile" },
 ]
@@ -124,30 +117,6 @@ export function TeacherSidebar() {
           <div className="flex justify-end pb-2">
             <NotificationsBell />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent">
-                <School className="w-4 h-4 text-secondary" />
-                Switch Role
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Demo Roles</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/student/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <GraduationCap className="w-4 h-4 text-primary" />
-                  Student
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/admin/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <Shield className="w-4 h-4 text-accent" />
-                  Admin
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { OrbitControls, Line } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, RotateCcw, CheckCircle2 } from "lucide-react"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = { prismAngleDeg: number; prismN: number; incidenceDeg: number }
 type Trial = { i: number; d: number; nearMin: boolean }
@@ -25,25 +26,165 @@ function clamp(v: number, a: number, b: number) { return Math.max(a, Math.min(b,
 function PrismDeviationScene({ step }: { step: number }) {
   return (
     <>
-      <color attach="background" args={["#020817"]} />
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[3, 5, 2]} intensity={1} />
+      <LabEnvironment benchY={-1.1} benchSize={10} />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]}>
-        <planeGeometry args={[8, 8]} />
-        <meshStandardMaterial color="#0f172a" />
-      </mesh>
+      {/* Glass Prism - triangular equilateral */}
+      <group position={[0, -0.2, 0]}>
+        <mesh rotation={[0, Math.PI / 6, 0]} castShadow>
+          <coneGeometry args={[1.3, 1.3, 3]} />
+          <meshPhysicalMaterial 
+            color="#a5f3fc" 
+            transmission={0.8} 
+            transparent 
+            opacity={0.45} 
+            roughness={0.05}
+            ior={1.52}
+            thickness={0.5}
+            attenuationColor="#0891b2"
+            attenuationDistance={0.3}
+          />
+        </mesh>
+        {/* Inner highlight */}
+        <mesh rotation={[0, Math.PI / 6, 0]} position={[0, 0, 0.05]}>
+          <coneGeometry args={[1.1, 1.1, 3]} />
+          <meshPhysicalMaterial 
+            color="#67e8f9" 
+            transmission={0.9} 
+            transparent 
+            opacity={0.2} 
+            roughness={0.02}
+          />
+        </mesh>
+        {/* Prism base/holder */}
+        <mesh position={[0, -0.7, 0]}>
+          <boxGeometry args={[0.6, 0.1, 0.4]} />
+          <meshStandardMaterial color="#334155" metalness={0.6} roughness={0.4} />
+        </mesh>
+      </group>
 
-      <mesh position={[0, 0, 0]}>
-        <coneGeometry args={[1.1, 1.1, 3]} />
-        <meshPhysicalMaterial color="#bfdbfe" transparent opacity={0.5} transmission={0.7} roughness={0.05} />
-      </mesh>
+      {/* Ray Box equipment */}
+      {step >= 1 && (
+        <group position={[-1.8, 0.15, 0]}>
+          {/* Ray box housing */}
+          <mesh castShadow>
+            <boxGeometry args={[0.7, 0.28, 0.18]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.7} roughness={0.3} />
+          </mesh>
+          {/* Slit aperture */}
+          <mesh position={[0.36, 0, 0]}>
+            <boxGeometry args={[0.05, 0.04, 0.18]} />
+            <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.6} />
+          </mesh>
+          {/* On/off switch */}
+          <mesh position={[0, -0.05, 0.12]}>
+            <cylinderGeometry args={[0.03, 0.03, 0.02, 16]} />
+            <meshStandardMaterial color="#ef4444" />
+          </mesh>
+          {/* Base stand */}
+          <mesh position={[0, -0.25, 0]}>
+            <boxGeometry args={[0.5, 0.08, 0.35]} />
+            <meshStandardMaterial color="#475569" />
+          </mesh>
+        </group>
+      )}
 
-      {step >= 1 && <Line points={[[-2, 0.15, 0], [-0.6, 0.15, 0]]} color="#f59e0b" lineWidth={3} />}
-      {step >= 2 && <Line points={[[-0.6, 0.15, 0], [0.2, -0.05, 0]]} color="#22d3ee" lineWidth={3} />}
-      {step >= 3 && <Line points={[[0.2, -0.05, 0], [1.45, 0.2, 0]]} color="#38bdf8" lineWidth={3} />}
+      {/* White screen for measuring deviation */}
+      {step >= 3 && (
+        <group position={[1.6, 0.2, 0]}>
+          {/* Screen panel */}
+          <mesh castShadow>
+            <boxGeometry args={[0.06, 1.2, 0.8]} />
+            <meshStandardMaterial color="#f1f5f9" />
+          </mesh>
+          {/* Screen frame */}
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.08, 1.25, 0.85]} />
+            <meshStandardMaterial color="#334155" wireframe />
+          </mesh>
+          {/* Stand */}
+          <mesh position={[-0.15, -0.9, 0]}>
+            <cylinderGeometry args={[0.03, 0.04, 0.5, 12]} rotation={[0, 0, Math.PI / 4]} />
+            <meshStandardMaterial color="#475569" metalness={0.6} roughness={0.4} />
+          </mesh>
+        </group>
+      )}
 
-      <OrbitControls enablePan={false} minDistance={2.7} maxDistance={5.7} target={[0, 0, 0]} />
+      {/* Protractor for angle measurement */}
+      {step >= 2 && (
+        <group position={[0, -0.2, 0.1]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.6, 0.63, 64, 1, 0, Math.PI * 1.2]} />
+            <meshBasicMaterial color="#f8fafc" transparent opacity={0.12} side={2} />
+          </mesh>
+          {/* Angle markings */}
+          {Array.from({ length: 13 }).map((_, i) => {
+            const angle = (i * 10 * Math.PI) / 180 - Math.PI / 6
+            const r1 = 0.55
+            const r2 = i % 2 === 0 ? 0.62 : 0.58
+            return (
+              <mesh key={i} position={[
+                Math.cos(angle) * (r1 + r2) / 2,
+                Math.sin(angle) * (r1 + r2) / 2,
+                0.02
+              ]} rotation={[0, 0, angle]}>
+                <boxGeometry args={[0.005, r2 - r1, 0.002]} />
+                <meshBasicMaterial color={i % 2 === 0 ? "#e2e8f0" : "#94a3b8"} />
+              </mesh>
+            )
+          })}
+        </group>
+      )}
+
+      {/* Incident ray - golden with glow */}
+      {step >= 1 && (
+        <group>
+          <Line points={[[-1.5, 0.15, 0], [-0.55, 0.15, 0]]} color="#f59e0b" lineWidth={8} opacity={0.2} />
+          <Line points={[[-1.5, 0.15, 0], [-0.55, 0.15, 0]]} color="#fbbf24" lineWidth={4} opacity={0.8} />
+          <Line points={[[-1.5, 0.15, 0], [-0.55, 0.15, 0]]} color="#fef3c7" lineWidth={2} />
+        </group>
+      )}
+
+      {/* Internal refracted ray - cyan */}
+      {step >= 2 && (
+        <group>
+          <Line points={[[-0.55, 0.15, 0], [0.2, -0.08, 0]]} color="#22d3ee" lineWidth={6} opacity={0.3} />
+          <Line points={[[-0.55, 0.15, 0], [0.2, -0.08, 0]]} color="#22d3ee" lineWidth={3} opacity={0.8} />
+        </group>
+      )}
+
+      {/* Emergent ray - blue */}
+      {step >= 3 && (
+        <group>
+          <Line points={[[0.2, -0.08, 0], [1.55, 0.22, 0]]} color="#38bdf8" lineWidth={8} opacity={0.25} />
+          <Line points={[[0.2, -0.08, 0], [1.55, 0.22, 0]]} color="#38bdf8" lineWidth={4} opacity={0.9} />
+          <Line points={[[0.2, -0.08, 0], [1.55, 0.22, 0]]} color="#e0f2fe" lineWidth={2} />
+        </group>
+      )}
+
+      {/* Deviation angle visualization */}
+      {step >= 3 && (
+        <group position={[0.2, -0.08, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, -Math.PI / 3]}>
+            <ringGeometry args={[0.3, 0.33, 24, 1, 0, Math.PI / 2]} />
+            <meshBasicMaterial color="#38bdf8" transparent opacity={0.25} side={2} />
+          </mesh>
+          {/* Deviation arc */}
+          <mesh rotation={[-Math.PI / 2, 0, -Math.PI / 3]}>
+            <ringGeometry args={[0.35, 0.35, 64, 1, 0, Math.PI / 3]} />
+            <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} side={2} />
+          </mesh>
+        </group>
+      )}
+
+      {/* Normal lines at entry and exit */}
+      {step >= 2 && (
+        <>
+          <Line points={[[0.2, 0.65, 0], [0.2, -0.85, 0]]} color="#64748b" lineWidth={2} strokeDasharray={4} opacity={0.6} />
+          <Line points={[[-0.55, 0.85, 0], [-0.55, -0.55, 0]]} color="#64748b" lineWidth={2} strokeDasharray={4} opacity={0.6} />
+        </>
+      )}
+
+      <OrbitControls enablePan={false} minDistance={2.5} maxDistance={5.5} target={[0, -0.15, 0]} />
     </>
   )
 }

@@ -1218,6 +1218,7 @@ export default function LabWorkspace({
                     ? "bg-secondary text-secondary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
+                suppressHydrationWarning
               >
                 Hazard Mode
               </button>
@@ -1228,6 +1229,7 @@ export default function LabWorkspace({
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
+                suppressHydrationWarning
               >
                 Grading Mode
               </button>

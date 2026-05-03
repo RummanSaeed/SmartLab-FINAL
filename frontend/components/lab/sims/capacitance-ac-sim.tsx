@@ -27,6 +27,46 @@ type Trial = {
   measuredCapacitance: number
 }
 
+// Charge particles visualization for AC capacitor
+function ChargeParticles({ frequency }: { frequency: number }) {
+  const particlesRef = useRef<THREE.Group>(null)
+  const particleCount = 8
+  
+  useFrame(() => {
+    if (particlesRef.current) {
+      const time = Date.now() * 0.001
+      particlesRef.current.children.forEach((particle, i) => {
+        if (particle instanceof THREE.Mesh) {
+          const offset = (i / particleCount) * Math.PI * 2
+          const x = Math.sin(2 * Math.PI * frequency * time + offset) * 0.08
+          particle.position.x = x
+          
+          // Color based on direction (positive/negative charge)
+          const material = particle.material as THREE.MeshStandardMaterial
+          if (x > 0) {
+            material.color.set("#ff4444")
+            material.emissive.set("#ff0000")
+          } else {
+            material.color.set("#4444ff")
+            material.emissive.set("#0000ff")
+          }
+        }
+      })
+    }
+  })
+  
+  return (
+    <group ref={particlesRef}>
+      {Array.from({ length: particleCount }).map((_, i) => (
+        <mesh key={i} position={[0, (i - particleCount / 2) * 0.08, 0]}>
+          <sphereGeometry args={[0.015, 8, 8]} />
+          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 // Capacitor with AC charge visualization
 function Capacitor({ 
   chargeLevel, 
@@ -111,23 +151,7 @@ function Capacitor({
       </mesh>
       
       {/* Charge particles (oscillating) */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const time = Date.now() * 0.001
-        const charge = Math.sin(2 * Math.PI * frequency * time)
-        const side = charge > 0 ? -1 : 1
-        const y = -0.3 + (i / 12) * 0.6
-        const z = (Math.random() - 0.5) * 0.4
-        return (
-          <mesh key={i} position={[side * 0.12, y, z]}>
-            <sphereGeometry args={[0.02, 8, 8]} />
-            <meshStandardMaterial 
-              color={side > 0 ? "#4444ff" : "#ff4444"}
-              emissive={side > 0 ? "#0000ff" : "#ff0000"}
-              emissiveIntensity={0.5}
-            />
-          </mesh>
-        )
-      })}
+      <ChargeParticles frequency={frequency} />
       
       <Text position={[0, 0.5, 0.4]} fontSize={0.06} color="#1e293b" anchorX="center">
         {(capacitance * 1000000).toFixed(1)} μF

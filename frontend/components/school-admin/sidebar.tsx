@@ -17,14 +17,6 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useState } from "react"
 
 const menuItems = [
@@ -115,44 +107,34 @@ export function SchoolAdminSidebar() {
       </nav>
 
       <div className="p-4 border-t border-border/50">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3",
-                collapsed ? "justify-center px-0" : ""
-              )}
-            >
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">SA</span>
-              </div>
-              {!collapsed && (
-                <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">School Admin</span>
-                  <span className="text-xs text-muted-foreground">
-                    View Profile
-                  </span>
-                </div>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/school-admin/profile" className="cursor-pointer">
-                <UserCog className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Link
+          href="/school-admin/profile"
+          className={cn(
+            "flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity",
+            collapsed && "justify-center"
+          )}
+        >
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-sm font-medium text-primary">SA</span>
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium">School Admin</span>
+              <span className="text-xs text-muted-foreground">View Profile</span>
+            </div>
+          )}
+        </Link>
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-muted-foreground hover:text-foreground",
+            collapsed && "justify-center px-0"
+          )}
+          onClick={handleSignOut}
+        >
+          <LogOut className="w-5 h-5" />
+          {!collapsed && <span className="ml-3">Sign Out</span>}
+        </Button>
       </div>
     </aside>
   )

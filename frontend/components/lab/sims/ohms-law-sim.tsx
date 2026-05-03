@@ -1,10 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useRef } from "react"
+import { Canvas, useFrame } from "@react-three/fiber"
+import { OrbitControls } from "@react-three/drei"
 import { Battery, Zap, Activity, AlertTriangle } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { LabEnvironment } from "@/components/lab/lab-environment"
+import type { Mesh } from "three"
 
 type Props = {
   voltage: number
@@ -13,15 +17,42 @@ type Props = {
   onResistanceChange: (v: number) => void
 }
 
+function CurrentDots({ speed }: { speed: number }) {
+  const dots = useRef<Mesh[]>([])
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * Math.max(0.2, speed)
+    dots.current.forEach((d, i) => {
+      if (!d) return
+      const p = (t * 0.22 + i / 10) % 1
+      const x = -2 + p * 4
+      d.position.x = x
+      d.position.y = x < 0 ? 0 : x < 2 ? 0.4 - x * 0.2 : 0
+    })
+  })
+
+  return (
+    <group>
+      {Array.from({ length: 10 }).map((_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            if (el) dots.current[i] = el
+          }}
+          position={[-2 + i * 0.4, 0, 0]}
+        >
+          <sphereGeometry args={[0.05, 10, 10]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 export function OhmsLawSim({ voltage, resistance, onVoltageChange, onResistanceChange }: Props) {
   const current = useMemo(() => (resistance > 0 ? voltage / resistance : 0), [voltage, resistance])
   const power = useMemo(() => voltage * current, [voltage, current])
   const hazard = voltage > 12 || resistance < 20
-
-  const [flow, setFlow] = useState(0)
-  useEffect(() => {
-    setFlow(current * 100)
-  }, [current])
+  const flow = useMemo(() => current * 100, [current])
 
   return (
     <div className="h-full flex flex-col gap-4">
@@ -67,6 +98,34 @@ export function OhmsLawSim({ voltage, resistance, onVoltageChange, onResistanceC
           Overvoltage/low resistance triggers virtual hazard (sparks/smoke). Keep voltage reasonable and resistance not
           too low.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden h-[300px]">
+        <Canvas camera={{ position: [0, 2.6, 5], fov: 45 }}>
+          <LabEnvironment benchY={-1.1} benchSize={10} />
+          <mesh position={[-2, 0, 0]} castShadow>
+            <boxGeometry args={[0.9, 0.34, 0.36]} />
+            <meshStandardMaterial color="#22c55e" metalness={0.35} roughness={0.55} />
+          </mesh>
+          <mesh position={[0.1, 0.2, 0]} castShadow>
+            <boxGeometry args={[0.9, 0.34, 0.36]} />
+            <meshStandardMaterial color="#f59e0b" metalness={0.3} roughness={0.6} />
+          </mesh>
+          <mesh position={[2, 0, 0]} castShadow>
+            <boxGeometry args={[0.9, 0.34, 0.36]} />
+            <meshStandardMaterial color={hazard ? "#ef4444" : "#60a5fa"} emissive={hazard ? "#991b1b" : "#1d4ed8"} emissiveIntensity={hazard ? 0.22 : 0.12} metalness={0.35} roughness={0.55} />
+          </mesh>
+          <mesh position={[-1, 0, 0]} castShadow>
+            <boxGeometry args={[1.2, 0.06, 0.06]} />
+            <meshStandardMaterial color="#94a3b8" metalness={0.55} roughness={0.35} />
+          </mesh>
+          <mesh position={[1, 0.1, 0]} castShadow>
+            <boxGeometry args={[1.2, 0.06, 0.06]} />
+            <meshStandardMaterial color="#94a3b8" metalness={0.55} roughness={0.35} />
+          </mesh>
+          <CurrentDots speed={Math.min(2.5, Math.abs(current) * 7)} />
+          <OrbitControls enablePan={false} minDistance={3} maxDistance={7} />
+        </Canvas>
       </div>
 
       <div className="space-y-4">

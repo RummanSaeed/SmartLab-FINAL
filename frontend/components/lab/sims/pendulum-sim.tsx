@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Text } from "@react-three/drei"
+import { OrbitControls, Text, Line } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Play, RotateCcw, CheckCircle2 } from "lucide-react"
+import { Play, RotateCcw, CheckCircle2, TrendingUp, Calculator } from "lucide-react"
 import * as THREE from "three"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = {
   lengthM: number
@@ -23,42 +24,90 @@ const EQUIPMENT: Array<{ key: EquipmentKey; label: string }> = [
   { key: "stopwatch", label: "Stopwatch" },
 ]
 
-// Protractor component showing angle scale
-function Protractor({ angle }: { angle: number }) {
+// Realistic Photogate sensor
+function Photogate({ position }: { position: [number, number, number] }) {
   return (
-    <group position={[0, 2.5, 0.15]}>
-      {/* Semi-circle protractor */}
-      <mesh>
-        <cylinderGeometry args={[0.25, 0.25, 0.01, 32, 1, true, 0, Math.PI]} />
-        <meshStandardMaterial color="#f8fafc" transparent opacity={0.8} side={THREE.DoubleSide} />
+    <group position={position}>
+      {/* Gate frame */}
+      <mesh position={[-0.15, 0, 0]} castShadow>
+        <boxGeometry args={[0.04, 0.35, 0.08]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.6} roughness={0.3} />
       </mesh>
-      {/* Center point */}
+      <mesh position={[0.15, 0, 0]} castShadow>
+        <boxGeometry args={[0.04, 0.35, 0.08]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Base */}
+      <mesh position={[0, -0.18, 0]} castShadow>
+        <boxGeometry args={[0.4, 0.04, 0.2]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.5} roughness={0.4} />
+      </mesh>
+      {/* LED indicators */}
+      <mesh position={[-0.12, 0.12, 0.04]}>
+        <sphereGeometry args={[0.015, 8, 8]} />
+        <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.8} />
+      </mesh>
+      <mesh position={[0.12, 0.12, 0.04]}>
+        <sphereGeometry args={[0.015, 8, 8]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
+      </mesh>
+      {/* Laser beam */}
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.002, 0.002, 0.26, 8]} rotation={[0, 0, Math.PI / 2]} />
+        <meshBasicMaterial color="#22c55e" transparent opacity={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+// Enhanced Protractor with markings
+function Protractor({ angle }: { angle: number }) {
+  const markings = Array.from({ length: 19 }, (_, i) => {
+    const deg = i * 5
+    const a = (deg * Math.PI) / 180
+    const isMajor = deg % 10 === 0
+    return { deg, a, isMajor }
+  })
+
+  return (
+    <group position={[0, 2.5, 0.12]}>
+      <mesh>
+        <cylinderGeometry args={[0.28, 0.28, 0.008, 64, 1, true, 0, Math.PI]} />
+        <meshStandardMaterial color="#f1f5f9" transparent opacity={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[0.28, 0.008, 8, 64, Math.PI]} />
+        <meshStandardMaterial color="#64748b" />
+      </mesh>
+      {markings.map(({ deg, a, isMajor }, i) => (
+        <group key={i}>
+          <mesh position={[Math.sin(a) * 0.25, Math.cos(a) * 0.25, 0.01]} rotation={[0, 0, -a]}>
+            <boxGeometry args={[isMajor ? 0.02 : 0.012, isMajor ? 0.06 : 0.035, 0.004]} />
+            <meshStandardMaterial color={isMajor ? "#0f172a" : "#64748b"} />
+          </mesh>
+          {isMajor && (
+            <Text
+              position={[Math.sin(a) * 0.32, Math.cos(a) * 0.32, 0.015]}
+              fontSize={0.035}
+              color="#0f172a"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {`${deg}°`}
+            </Text>
+          )}
+        </group>
+      ))}
       <mesh position={[0, 0, 0.02]}>
         <cylinderGeometry args={[0.015, 0.015, 0.02, 16]} />
         <meshStandardMaterial color="#ef4444" />
       </mesh>
-      {/* Angle marks */}
-      {[-30, -20, -10, 0, 10, 20, 30].map((deg) => (
-        <group key={deg} rotation={[0, 0, (deg * Math.PI) / 180]}>
-          <mesh position={[0, 0.22, 0.01]}>
-            <boxGeometry args={[0.002, 0.02, 0.005]} />
-            <meshStandardMaterial color="#1e293b" />
-          </mesh>
-          <Text
-            position={[0, 0.18, 0.02]}
-            fontSize={0.02}
-            color="#1e293b"
-            anchorX="center"
-            rotation={[0, 0, (-deg * Math.PI) / 180]}
-          >
-            {Math.abs(deg)}°
-          </Text>
-        </group>
-      ))}
-      {/* Current angle indicator */}
-      <mesh rotation={[0, 0, angle]} position={[0, 0.15, 0.02]}>
-        <boxGeometry args={[0.004, 0.12, 0.003]} />
-        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
+      <mesh
+        position={[Math.sin(angle * Math.PI / 180) * 0.22, Math.cos(angle * Math.PI / 180) * 0.22, 0.02]}
+        rotation={[0, 0, -angle * Math.PI / 180]}
+      >
+        <boxGeometry args={[0.008, 0.08, 0.005]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.3} />
       </mesh>
     </group>
   )
@@ -129,17 +178,12 @@ function PendulumScene({
 
   return (
     <>
-      <color attach="background" args={["#0a0f1a"]} />
+      <LabEnvironment benchY={-0.25} benchSize={14} />
+
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 8, 4]} intensity={1.2} castShadow />
       <directionalLight position={[-3, 6, -2]} intensity={0.4} />
       <pointLight position={[0, 2.5, 2]} intensity={0.5} color="#fbbf24" />
-
-      {/* Lab bench */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]} receiveShadow>
-        <planeGeometry args={[20, 20]} />
-        <meshStandardMaterial color="#1e293b" metalness={0.1} roughness={0.9} />
-      </mesh>
 
       {/* Base plate */}
       <mesh position={[0, -0.05, 0]} castShadow>
@@ -214,6 +258,9 @@ function PendulumScene({
         </line>
       )}
 
+      {/* Photogate sensor at bottom position */}
+      <Photogate position={[0, -0.05, 0.4]} />
+
       {/* Length measurement indicator */}
       <Text position={[0.5, 1.5, 0]} fontSize={0.06} color="#94a3b8" anchorX="left">
         L = {lengthM.toFixed(2)} m
@@ -240,6 +287,9 @@ function PendulumScene({
   )
 }
 
+// Graph data point type
+type GraphPoint = { L: number; T: number; T2: number }
+
 export function PendulumSim({ lengthM, releaseAngleDeg, oscillationCount }: Props) {
   const [isRunning, setIsRunning] = useState(false)
   const [elapsed, setElapsed] = useState(0)
@@ -252,6 +302,7 @@ export function PendulumSim({ lengthM, releaseAngleDeg, oscillationCount }: Prop
     stopwatch: false,
   })
   const [step, setStep] = useState(0)
+  const [graphData, setGraphData] = useState<GraphPoint[]>([])
 
   const lengthForPhysics = Math.max(0.2, lengthM)
   const angle0 = (releaseAngleDeg * Math.PI) / 180
@@ -351,7 +402,23 @@ export function PendulumSim({ lengthM, releaseAngleDeg, oscillationCount }: Prop
     setElapsed(0)
     setLastTrialTime(null)
     setTrials([])
+    setGraphData([])
   }
+
+  // Add data point to graph when trial completes
+  useEffect(() => {
+    if (lastTrialTime !== null && !isRunning) {
+      const T = lastTrialTime / Math.max(1, oscillationCount)
+      const T2 = T * T
+      setGraphData((prev) => {
+        const exists = prev.some((p) => Math.abs(p.L - lengthM) < 0.01)
+        if (exists) {
+          return prev.map((p) => (Math.abs(p.L - lengthM) < 0.01 ? { L: lengthM, T, T2 } : p))
+        }
+        return [...prev, { L: lengthM, T, T2 }].sort((a, b) => a.L - b.L)
+      })
+    }
+  }, [lastTrialTime, isRunning, lengthM, oscillationCount])
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-auto pr-1">
@@ -448,26 +515,110 @@ export function PendulumSim({ lengthM, releaseAngleDeg, oscillationCount }: Prop
         </Canvas>
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-        <div className="font-semibold mb-2">Observation Table ({oscillationCount} oscillations timed)</div>
-        {trials.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No trials yet. Complete setup and run at least 3 trials.</div>
-        ) : (
-          <div className="space-y-2 text-sm">
-            <div className="grid grid-cols-3 gap-2 text-muted-foreground">
-              <div>Trial</div>
-              <div>t_n (s)</div>
-              <div>T = t_n / n (s)</div>
-            </div>
-            {trials.map((t, idx) => (
-              <div key={idx} className="grid grid-cols-3 gap-2 border-t border-border/40 pt-2">
-                <div>{idx + 1}</div>
-                <div>{t.toFixed(2)}</div>
-                <div>{(t / Math.max(1, oscillationCount)).toFixed(3)}</div>
-              </div>
-            ))}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Observation Table */}
+        <div className="rounded-xl border border-border/60 bg-card/40 p-4">
+          <div className="font-semibold mb-2 flex items-center gap-2">
+            <Calculator className="w-4 h-4" />
+            Observation Table ({oscillationCount} oscillations)
           </div>
-        )}
+          {trials.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No trials yet. Complete setup and run at least 3 trials.</div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-5 gap-2 text-muted-foreground text-xs">
+                <div>Trial</div>
+                <div>L (m)</div>
+                <div>t_n (s)</div>
+                <div>T (s)</div>
+                <div>T² (s²)</div>
+              </div>
+              {trials.map((t, idx) => {
+                const T = t / Math.max(1, oscillationCount)
+                return (
+                  <div key={idx} className="grid grid-cols-5 gap-2 border-t border-border/40 pt-2 text-sm">
+                    <div>{idx + 1}</div>
+                    <div>{lengthM.toFixed(2)}</div>
+                    <div>{t.toFixed(2)}</div>
+                    <div>{T.toFixed(3)}</div>
+                    <div>{(T * T).toFixed(3)}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* T² vs L Graph */}
+        <div className="rounded-xl border border-border/60 bg-card/40 p-4">
+          <div className="font-semibold mb-2 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            T² vs L Graph
+          </div>
+          {graphData.length < 2 ? (
+            <div className="text-sm text-muted-foreground h-40 flex items-center justify-center">
+              Need at least 2 data points at different lengths
+            </div>
+          ) : (
+            <div className="h-40 relative">
+              <svg viewBox="0 0 300 150" className="w-full h-full">
+                {/* Grid lines */}
+                <defs>
+                  <pattern id="grid" width="30" height="15" patternUnits="userSpaceOnUse">
+                    <path d="M 30 0 L 0 0 0 15" fill="none" stroke="#334155" strokeWidth="0.5"/>
+                  </pattern>
+                </defs>
+                <rect width="300" height="150" fill="url(#grid)" />
+                
+                {/* Axes */}
+                <line x1="30" y1="130" x2="290" y2="130" stroke="#64748b" strokeWidth="2" />
+                <line x1="30" y1="130" x2="30" y2="10" stroke="#64748b" strokeWidth="2" />
+                
+                {/* Labels */}
+                <text x="160" y="145" textAnchor="middle" fill="#94a3b8" fontSize="10">Length L (m)</text>
+                <text x="12" y="75" textAnchor="middle" fill="#94a3b8" fontSize="10" transform="rotate(-90 12 75)">T² (s²)</text>
+                
+                {/* Data points and line */}
+                {graphData.map((p, i) => {
+                  const maxL = Math.max(...graphData.map(d => d.L)) * 1.1
+                  const maxT2 = Math.max(...graphData.map(d => d.T2)) * 1.1
+                  const x = 30 + (p.L / maxL) * 250
+                  const y = 130 - (p.T2 / maxT2) * 110
+                  return (
+                    <g key={i}>
+                      <circle cx={x} cy={y} r="4" fill="#22c55e" />
+                      <text x={x + 8} y={y - 5} fill="#22c55e" fontSize="8">({p.L.toFixed(2)}, {p.T2.toFixed(2)})</text>
+                    </g>
+                  )
+                })}
+                
+                {/* Best fit line */}
+                {graphData.length >= 2 && (() => {
+                  const n = graphData.length
+                  const sumL = graphData.reduce((s, p) => s + p.L, 0)
+                  const sumT2 = graphData.reduce((s, p) => s + p.T2, 0)
+                  const sumLT2 = graphData.reduce((s, p) => s + p.L * p.T2, 0)
+                  const sumL2 = graphData.reduce((s, p) => s + p.L * p.L, 0)
+                  const slope = (n * sumLT2 - sumL * sumT2) / (n * sumL2 - sumL * sumL)
+                  const intercept = (sumT2 - slope * sumL) / n
+                  const maxL = Math.max(...graphData.map(d => d.L)) * 1.1
+                  const maxT2 = Math.max(...graphData.map(d => d.T2)) * 1.1
+                  const x1 = 30
+                  const y1 = 130 - (intercept / maxT2) * 110
+                  const x2 = 30 + (maxL / maxL) * 250
+                  const y2 = 130 - ((slope * maxL + intercept) / maxT2) * 110
+                  return (
+                    <g>
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#f59e0b" strokeWidth="2" strokeDasharray="4" />
+                      <text x="200" y="25" fill="#f59e0b" fontSize="9">slope ≈ {slope.toFixed(2)} s²/m</text>
+                      <text x="200" y="38" fill="#f59e0b" fontSize="9">g ≈ {(4 * Math.PI * Math.PI / slope).toFixed(2)} m/s²</text>
+                    </g>
+                  )
+                })()}
+              </svg>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

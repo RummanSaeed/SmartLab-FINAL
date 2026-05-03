@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { Badge } from "@/components/ui/badge"
 import type { Mesh } from "three"
+import { LabEnvironment } from "@/components/lab/lab-environment"
 
 type Props = { voltage: number; r1: number; r2: number }
 
@@ -70,17 +71,14 @@ export function ParallelCircuitSim({ voltage, r1, r2 }: Props) {
       </div>
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden h-[300px]">
         <Canvas camera={{ position: [0, 2.8, 5], fov: 45 }}>
-          <color attach="background" args={["#020817"]} />
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 2]} intensity={1} />
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]}><planeGeometry args={[8, 8]} /><meshStandardMaterial color="#0f172a" /></mesh>
-          <mesh position={[-2, 0, 0]}><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#22c55e" /></mesh>
-          <mesh position={[0, 0.8, 0]}><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#f59e0b" /></mesh>
-          <mesh position={[0, -0.8, 0]}><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#f59e0b" /></mesh>
-          <mesh position={[2, 0, 0]}><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#ef4444" /></mesh>
-          <mesh position={[-1, 0, 0]}><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" /></mesh>
-          <mesh position={[1, 0.8, 0]}><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" /></mesh>
-          <mesh position={[1, -0.8, 0]}><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" /></mesh>
+          <LabEnvironment benchY={-1.1} benchSize={10} />
+          <mesh position={[-2, 0, 0]} castShadow><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#22c55e" metalness={0.3} roughness={0.6} /></mesh>
+          <mesh position={[0, 0.8, 0]} castShadow><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#f59e0b" metalness={0.3} roughness={0.6} /></mesh>
+          <mesh position={[0, -0.8, 0]} castShadow><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#f59e0b" metalness={0.3} roughness={0.6} /></mesh>
+          <mesh position={[2, 0, 0]} castShadow><boxGeometry args={[0.8, 0.3, 0.3]} /><meshStandardMaterial color="#ef4444" metalness={0.3} roughness={0.6} /></mesh>
+          <mesh position={[-1, 0, 0]} castShadow><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" metalness={0.5} /></mesh>
+          <mesh position={[1, 0.8, 0]} castShadow><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" metalness={0.5} /></mesh>
+          <mesh position={[1, -0.8, 0]} castShadow><boxGeometry args={[1.0, 0.06, 0.06]} /><meshStandardMaterial color="#94a3b8" metalness={0.5} /></mesh>
           <BranchDots i1={calc.i1 * 5} i2={calc.i2 * 5} />
           <OrbitControls enablePan={false} minDistance={3} maxDistance={7} />
         </Canvas>
@@ -88,3 +86,4 @@ export function ParallelCircuitSim({ voltage, r1, r2 }: Props) {
     </div>
   )
 }
+

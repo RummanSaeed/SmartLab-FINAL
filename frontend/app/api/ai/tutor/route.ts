@@ -250,7 +250,20 @@ Steps: ${practical.steps.join(" | ")}`
       } catch {
         // non-blocking
       }
-      return NextResponse.json({ answer, model: "local-fallback" })
+      return NextResponse.json({
+        answer,
+        model: "local-fallback",
+        ...(process.env.NODE_ENV !== "production"
+          ? {
+              debug: {
+                provider,
+                hasOpenRouterKey: Boolean(openRouterApiKey),
+                hasGroqKey: Boolean(groqApiKey),
+                mode: "no_keys_fallback",
+              },
+            }
+          : {}),
+      })
     }
 
     const messages = [
@@ -264,6 +277,7 @@ Steps: ${practical.steps.join(" | ")}`
     const openRouterModelsToTry = [defaultOpenRouterModel, ...OPENROUTER_FALLBACK_MODELS]
     let answer = "I'm not sure. Please try again."
     let lastError: unknown = null
+    let providerErrorMessage: string | null = null
     let usedModel = ""
 
     if (provider === "openrouter" && openRouterApiKey) {
@@ -272,9 +286,11 @@ Steps: ${practical.steps.join(" | ")}`
           answer = await callOpenRouter(model, openRouterApiKey, messages)
           usedModel = model
           lastError = null
+          providerErrorMessage = null
           break
         } catch (err) {
           lastError = err
+          providerErrorMessage = err instanceof Error ? err.message : String(err)
         }
       }
     } else if (provider === "groq" && groqApiKey) {
@@ -283,9 +299,11 @@ Steps: ${practical.steps.join(" | ")}`
           answer = await callGroq(model, groqApiKey, messages)
           usedModel = model
           lastError = null
+          providerErrorMessage = null
           break
         } catch (err) {
           lastError = err
+          providerErrorMessage = err instanceof Error ? err.message : String(err)
         }
       }
     }
@@ -296,9 +314,11 @@ Steps: ${practical.steps.join(" | ")}`
           answer = await callOpenRouter(model, openRouterApiKey, messages)
           usedModel = model
           lastError = null
+          providerErrorMessage = null
           break
         } catch (err) {
           lastError = err
+          providerErrorMessage = err instanceof Error ? err.message : String(err)
         }
       }
     }
@@ -308,14 +328,17 @@ Steps: ${practical.steps.join(" | ")}`
           answer = await callGroq(model, groqApiKey, messages)
           usedModel = model
           lastError = null
+          providerErrorMessage = null
           break
         } catch (err) {
           lastError = err
+          providerErrorMessage = err instanceof Error ? err.message : String(err)
         }
       }
     }
 
     if (lastError) {
+      console.error("AI provider failed; using fallback", lastError)
       answer = localFallbackAnswer(authResult.auth.role, contextType, question, baseContext, roleContext)
       usedModel = usedModel || "local-fallback"
       lastError = null
@@ -347,7 +370,20 @@ Steps: ${practical.steps.join(" | ")}`
       // non-blocking audit/log persistence
     }
 
-    return NextResponse.json({ answer, model: usedModel || null })
+    return NextResponse.json({
+      answer,
+      model: usedModel || null,
+      ...(process.env.NODE_ENV !== "production"
+        ? {
+            debug: {
+              provider,
+              hasOpenRouterKey: Boolean(openRouterApiKey),
+              hasGroqKey: Boolean(groqApiKey),
+              providerError: providerErrorMessage,
+            },
+          }
+        : {}),
+    })
   } catch (err) {
     console.error("tutor error", err)
     return NextResponse.json({ error: "Server error" }, { status: 500 })

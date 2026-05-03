@@ -14,17 +14,10 @@ import {
   GraduationCap,
   School,
   Shield,
+  BarChart3,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useEffect, useState } from "react"
 import { NotificationsBell } from "@/components/notifications-bell"
 
@@ -33,6 +26,8 @@ const menuItems = [
   { icon: Beaker, label: "Lab Workspace", href: "/student/lab" },
   { icon: History, label: "My History", href: "/student/history" },
   { icon: MessageSquare, label: "AI Tutor", href: "/student/ai-tutor" },
+  { icon: BarChart3, label: "Report", href: "/student/report" },
+  { icon: MessageSquare, label: "Chat", href: "/student/chat" },
   { icon: User, label: "Profile", href: "/student/profile" },
   { icon: GraduationCap, label: "Assignments", href: "/student/assignments" },
   { icon: School, label: "Notices", href: "/student/notices" },
@@ -122,30 +117,6 @@ export function StudentSidebar() {
           <div className="flex justify-end pb-2">
             <NotificationsBell />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2 bg-transparent">
-                <GraduationCap className="w-4 h-4 text-primary" />
-                Switch Role
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Demo Roles</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/teacher/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <School className="w-4 h-4 text-secondary" />
-                  Teacher
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/admin/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <Shield className="w-4 h-4 text-accent" />
-                  Admin
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       )}
 

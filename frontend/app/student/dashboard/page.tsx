@@ -306,7 +306,7 @@ export default function StudentDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {continueExperiments.map((exp, index) => (
                   <motion.div
-                    key={exp.id}
+                    key={`${exp.id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -480,11 +480,12 @@ export default function StudentDashboard() {
                 />
               </div>
 
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap" suppressHydrationWarning>
                 <select
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
                   className="px-4 py-2 rounded-lg bg-card/50 border border-border/50 text-sm"
+                  suppressHydrationWarning
                 >
                   <option value="all">All Subjects</option>
                   <option value="Physics">Physics</option>
@@ -500,6 +501,7 @@ export default function StudentDashboard() {
                     value={selectedClass}
                     onChange={(e) => setSelectedClass(e.target.value)}
                     className="px-4 py-2 rounded-lg bg-card/50 border border-border/50 text-sm"
+                    suppressHydrationWarning
                   >
                     <option value="all">All Classes</option>
                     <option value="9">Class 9</option>
@@ -513,6 +515,7 @@ export default function StudentDashboard() {
                   value={selectedDifficulty}
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
                   className="px-4 py-2 rounded-lg bg-card/50 border border-border/50 text-sm"
+                  suppressHydrationWarning
                 >
                   <option value="all">All Difficulties</option>
                   <option value="Easy">Easy</option>
@@ -526,7 +529,7 @@ export default function StudentDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredExperiments.map((exp, index) => (
                 <motion.div
-                  key={exp.id}
+                  key={`${exp.id}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
