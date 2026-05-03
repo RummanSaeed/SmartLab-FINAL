@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SchoolAdminSidebar } from "@/components/school-admin/sidebar"
 import Link from "next/link"
 
 type SchoolStats = {
@@ -82,10 +81,7 @@ export default function SchoolAdminSettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <SchoolAdminSidebar />
-
-      <main className="flex-1 p-6 lg:p-8 overflow-auto">
+    <div className="flex-1 p-6 lg:p-8 overflow-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">School Settings</h1>
@@ -281,7 +277,6 @@ export default function SchoolAdminSettingsPage() {
         <div className="mt-8 text-center text-sm text-muted-foreground">
           <p>School ID: SCH-{Math.random().toString(36).substring(2, 8).toUpperCase()} • Last updated: {new Date().toLocaleDateString()}</p>
         </div>
-      </main>
     </div>
   )
 }

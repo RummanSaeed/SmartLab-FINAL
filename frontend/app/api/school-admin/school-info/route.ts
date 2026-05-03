@@ -7,10 +7,12 @@ export async function GET(req: Request) {
   if (!authResult.ok) return authResult.error
 
   const user = authResult.user
-  const schoolId = user?.schoolId || user?.school
+  const schoolName = user?.school
 
   try {
     // Get school stats
+    const schoolFilter = schoolName ? { school: { equals: schoolName } } : {}
+    
     const [
       totalStudents,
       totalTeachers,
@@ -20,24 +22,22 @@ export async function GET(req: Request) {
       prisma.user.count({
         where: {
           role: "student",
-          schoolId: schoolId || undefined,
+          ...schoolFilter,
         },
       }),
       prisma.user.count({
         where: {
           role: "teacher",
-          schoolId: schoolId || undefined,
+          ...schoolFilter,
         },
       }),
       prisma.class.count({
-        where: {
-          schoolId: schoolId || undefined,
-        },
+        where: schoolFilter,
       }),
       prisma.experimentRun.count({
         where: {
           user: {
-            schoolId: schoolId || undefined,
+            ...schoolFilter,
           },
           updatedAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
@@ -46,10 +46,10 @@ export async function GET(req: Request) {
       }),
     ])
 
-    // Get school info from first user (placeholder for actual school table)
+    // Get school info from first user
     const schoolUser = await prisma.user.findFirst({
-      where: { schoolId: schoolId || undefined },
-      select: { school: true, schoolId: true },
+      where: schoolFilter,
+      select: { school: true },
     })
 
     const school = {
