@@ -28,11 +28,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StudentSidebar } from "@/components/student/sidebar"
 import { practicals } from "@/data/practicals"
 
-const defaultAssignedTasks = [
-  { id: 1, title: "Complete Lens Experiment", dueDate: "Tomorrow", subject: "Physics", priority: "high" },
-  { id: 2, title: "Electrolysis of Water", dueDate: "3 days", subject: "Chemistry", priority: "medium" },
-  { id: 3, title: "Magnetic Field Lines", dueDate: "1 week", subject: "Physics", priority: "low" },
-]
+type AssignedTask = {
+  id: string
+  title: string
+  dueDate: string
+  subject: string
+  priority: "high" | "medium" | "low"
+  type: string
+  hasSubmission: boolean
+}
+
+const defaultAssignedTasks: AssignedTask[] = []
 
 const defaultRecentAttempts = [
   { id: 1, title: "Simple Pendulum", score: 92, status: "completed", date: "Today" },
@@ -54,8 +60,9 @@ export default function StudentDashboard() {
   const [selectedSubject, setSelectedSubject] = useState(searchParams.get("subject") || "all")
   const [selectedClass, setSelectedClass] = useState(searchParams.get("class") || "all")
   const [selectedDifficulty, setSelectedDifficulty] = useState(searchParams.get("difficulty") || "all")
-  const [assignedTasks, setAssignedTasks] = useState(defaultAssignedTasks)
+  const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>(defaultAssignedTasks)
   const [recentAttempts, setRecentAttempts] = useState(defaultRecentAttempts)
+  const [assignmentsLoading, setAssignmentsLoading] = useState(true)
   const [continueExperimentsApi, setContinueExperimentsApi] = useState<
     Array<{ id: string; title: string; progress: number; lastAttempt: string }>
   >([])
@@ -86,6 +93,7 @@ export default function StudentDashboard() {
     }
   }, [])
 
+  // Fetch dashboard stats
   useEffect(() => {
     const params = new URLSearchParams()
     if (userEmail) params.set("email", userEmail)
@@ -100,7 +108,6 @@ export default function StudentDashboard() {
           hazardIncidents: data.stats?.hazardIncidents ?? 0,
           aiConversations: data.stats?.aiConversations ?? 0,
         })
-        if (Array.isArray(data.assignedTasks)) setAssignedTasks(data.assignedTasks)
         if (Array.isArray(data.recentAttempts)) setRecentAttempts(data.recentAttempts)
         if (Array.isArray(data.continueExperiments)) setContinueExperimentsApi(data.continueExperiments)
       })
@@ -108,6 +115,48 @@ export default function StudentDashboard() {
         // Keep fallback local data
       })
   }, [userEmail])
+
+  // Fetch real assignments from API
+  useEffect(() => {
+    setAssignmentsLoading(true)
+    fetch("/api/student/assignments")
+      .then((res) => res.json())
+      .then((data) => {
+        const assignments = Array.isArray(data?.assignments) ? data.assignments : []
+        const now = new Date()
+        const tasks: AssignedTask[] = assignments
+          .filter((a: any) => !a.submission) // Only pending assignments
+          .map((a: any) => {
+            const dueDate = new Date(a.extendedDueDate || a.dueDate)
+            const daysLeft = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            let priority: "high" | "medium" | "low" = "low"
+            if (daysLeft <= 1) priority = "high"
+            else if (daysLeft <= 3) priority = "medium"
+
+            let dueText = ""
+            if (daysLeft < 0) dueText = `${Math.abs(daysLeft)} days overdue`
+            else if (daysLeft === 0) dueText = "Today"
+            else if (daysLeft === 1) dueText = "Tomorrow"
+            else dueText = `${daysLeft} days`
+
+            return {
+              id: a.id,
+              title: a.title,
+              dueDate: dueText,
+              subject: a.subject || a.type,
+              priority,
+              type: a.type,
+              hasSubmission: false,
+            }
+          })
+          .slice(0, 5) // Show max 5
+        setAssignedTasks(tasks)
+      })
+      .catch(() => {
+        // Keep empty on error
+      })
+      .finally(() => setAssignmentsLoading(false))
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -355,10 +404,18 @@ export default function StudentDashboard() {
                     <BookOpen className="w-5 h-5 text-secondary" />
                     Assigned Tasks
                   </h2>
+                  <Link href="/student/assignments" className="text-sm text-primary hover:underline">
+                    View all
+                  </Link>
                 </div>
                 <Card className="bg-card/50 backdrop-blur border-border/50">
                   <CardContent className="p-0">
-                    {assignedTasks.map((task, index) => (
+                    {assignmentsLoading ? (
+                      <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+                    ) : assignedTasks.length === 0 ? (
+                      <div className="p-4 text-sm text-muted-foreground">No pending assignments</div>
+                    ) : (
+                      assignedTasks.map((task, index) => (
                       <div
                         key={task.id}
                         className={`p-4 flex items-center justify-between ${
@@ -382,11 +439,11 @@ export default function StudentDashboard() {
                             </p>
                           </div>
                         </div>
-                        <Button size="sm" variant="ghost">
-                          Start
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link href={`/student/assignments?highlight=${task.id}`}>Start</Link>
                         </Button>
                       </div>
-                    ))}
+                    )))}
                   </CardContent>
                 </Card>
               </section>

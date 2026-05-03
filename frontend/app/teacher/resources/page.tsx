@@ -107,23 +107,20 @@ export default function TeacherResourcesPage() {
     <div className="flex min-h-screen bg-background">
       <TeacherSidebar />
       <main className="flex-1 p-6 lg:p-8 overflow-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" asChild className="shrink-0">
+            <Link href="/teacher/dashboard">
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          </Button>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold">Resources</h1>
             <p className="text-muted-foreground mt-1">Share resources with a class section</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/teacher/dashboard" className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Link>
-            </Button>
-            <Button size="sm" onClick={() => setCreateOpen((v) => !v)} className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              New
-            </Button>
-          </div>
+          <Button size="sm" onClick={() => setCreateOpen((v) => !v)} className="flex items-center gap-2 shrink-0">
+            <Plus className="w-4 h-4" />
+            New
+          </Button>
         </div>
 
         {createOpen && (

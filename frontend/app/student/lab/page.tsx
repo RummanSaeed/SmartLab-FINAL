@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Play, Clock, BookOpen, Pin, AlertCircle, CheckCircle } from "lucide-react"
+import { Play, Clock, BookOpen, Pin, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
 import { practicals } from "@/data/practicals"
 
 interface ExperimentRun {
@@ -22,6 +23,7 @@ interface ExperimentRun {
 }
 
 export default function LabWorkspacePage() {
+  const router = useRouter()
   const [inProgressRun, setInProgressRun] = useState<ExperimentRun | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,9 +61,14 @@ export default function LabWorkspacePage() {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Lab Workspace</h1>
-        <p className="text-muted-foreground">Continue your current experiment or start a new one.</p>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => router.back()} className="shrink-0">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Lab Workspace</h1>
+          <p className="text-muted-foreground">Continue your current experiment or start a new one.</p>
+        </div>
       </div>
 
       {/* Current In-Progress Experiment */}

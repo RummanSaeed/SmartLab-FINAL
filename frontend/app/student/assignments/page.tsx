@@ -1,5 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { StudentSidebar } from "@/components/student/sidebar";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface Assignment {
   id: string;
@@ -24,6 +28,7 @@ interface Assignment {
 }
 
 export default function StudentAssignmentsPage() {
+  const router = useRouter();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,9 +188,16 @@ export default function StudentAssignmentsPage() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Assignments</h1>
-      <p className="text-muted-foreground mb-8">View and submit your assignments here.</p>
+    <div className="flex min-h-screen bg-background">
+      <StudentSidebar />
+      <main className="flex-1 p-8">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Assignments</h1>
+        </div>
+        <p className="text-muted-foreground mb-8 ml-12">View and submit your assignments here.</p>
 
       <div className="mb-4 flex items-center gap-3">
         <label className="text-sm text-muted-foreground">Subject</label>
@@ -347,7 +359,7 @@ export default function StudentAssignmentsPage() {
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 }
-

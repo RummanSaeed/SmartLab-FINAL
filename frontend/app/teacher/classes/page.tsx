@@ -104,17 +104,16 @@ export default function ClassesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" asChild className="shrink-0">
+          <Link href="/teacher/dashboard">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </Button>
         <div>
           <h1 className="text-3xl font-bold">My Classes</h1>
           <p className="text-muted-foreground mt-1">Monitor student progress across your classes</p>
         </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/teacher/dashboard" className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

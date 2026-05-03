@@ -1,8 +1,11 @@
 ﻿"use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { StudentSidebar } from "@/components/student/sidebar"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft } from "lucide-react"
 
 type RunRow = {
   id: string
@@ -18,6 +21,7 @@ type RunRow = {
 }
 
 export default function StudentHistoryPage() {
+  const router = useRouter()
   const [runs, setRuns] = useState<RunRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,8 +53,13 @@ export default function StudentHistoryPage() {
     <div className="flex min-h-screen bg-background">
       <StudentSidebar />
       <main className="flex-1 p-8 overflow-auto">
-        <h1 className="text-2xl font-bold mb-2">My History</h1>
-        <p className="text-muted-foreground mb-8">Your recent activity and experiment actions.</p>
+        <div className="flex items-center gap-4 mb-2">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">My History</h1>
+        </div>
+        <p className="text-muted-foreground mb-8 ml-12">Your recent activity and experiment actions.</p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <Select value={statusFilter} onValueChange={setStatusFilter}>

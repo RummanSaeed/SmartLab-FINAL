@@ -1,5 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { StudentSidebar } from "@/components/student/sidebar";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface Notice {
   id: string;
@@ -9,6 +13,7 @@ interface Notice {
 }
 
 export default function StudentNoticesPage() {
+  const router = useRouter();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +36,16 @@ export default function StudentNoticesPage() {
   }, [subject]);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Notices</h1>
-      <p className="text-muted-foreground mb-8">Important notices and announcements will appear here.</p>
+    <div className="flex min-h-screen bg-background">
+      <StudentSidebar />
+      <main className="flex-1 p-8">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Notices</h1>
+        </div>
+        <p className="text-muted-foreground mb-8 ml-12">Important notices and announcements will appear here.</p>
 
       <div className="mb-4 flex items-center gap-3">
         <label className="text-sm text-muted-foreground">Subject</label>
@@ -66,6 +78,7 @@ export default function StudentNoticesPage() {
           </ul>
         )}
       </div>
+      </main>
     </div>
   );
 }
